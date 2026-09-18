@@ -63,7 +63,7 @@ export default function Reading() {
   return (
     <main className="relative min-h-screen">
       <NightSky />
-      <div className="absolute inset-0 bg-sky/60" />
+      <div className="fixed inset-0 bg-sky/60" />
 
       <div className="relative mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 gap-12 px-8 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         {/* 좌측 고정 패널 */}

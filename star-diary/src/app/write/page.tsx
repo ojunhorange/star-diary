@@ -40,7 +40,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
   return (
     <main className="relative min-h-screen">
       <NightSky />
-      <div className="absolute inset-0 bg-sky/55" />
+      <div className="fixed inset-0 bg-sky/55" />
 
       <section className="relative mx-auto flex min-h-screen w-full max-w-2xl flex-col justify-center gap-6 px-6 py-16">
         <p className="flex items-center gap-3 font-serif text-muted">
