@@ -6,7 +6,9 @@ import ConstellationPreview from "@/components/ConstellationPreview";
 import NightSky from "@/components/NightSky";
 import { byId } from "@/lib/constellations";
 import type { Narrative, Retro } from "@/lib/narrative";
-import { addChapter, formatDate, isSunday, lastAction, repairIfBroken, RETRO_STEP, retroPool, getChosenServerSnapshot, getChosenSnapshot, getReadingServerSnapshot, getReadingSnapshot, getServerSnapshot, getSnapshot, subscribe, type Chapter } from "@/lib/store";
+import { addChapter, formatDate, isSunday, lastAction, repairIfBroken, RETRO_MAX, RETRO_STEP, retroPool, getChosenServerSnapshot, getChosenSnapshot, getReadingServerSnapshot, getReadingSnapshot, getServerSnapshot, getSnapshot, subscribe, type Chapter } from "@/lib/store";
+
+const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
 
 export default function Reading() {
   const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -17,14 +19,15 @@ export default function Reading() {
   const [current, setCurrent] = useState<number | null>(null); // null = 최근 장
   const [error, setError] = useState<string | null>(null);
   const requested = useRef(false);
+  const [wantOrigin, setWantOrigin] = useState(true); // 1장은 진입 즉시 생성. 답(회고)은 버튼으로
 
   useEffect(() => {
     repairIfBroken(entries, chosen);
   }, [entries, chosen]);
 
-  // 1장이 없으면 한 번만 생성 요청. 생성된 이야기는 저장되어 고정됨
+  // 1장: 버튼을 누르면 한 번만 생성. 생성된 이야기는 저장되어 고정됨
   useEffect(() => {
-    if (!chosen || !c || chapters.length > 0 || requested.current) return;
+    if (!wantOrigin || !chosen || !c || chapters.length > 0 || requested.current) return;
     const core = chosen.entryIds.map((id) => entries.find((e) => e.id === id)).filter((e) => e?.score);
     if (core.length < 3) return;
     requested.current = true;
@@ -45,15 +48,16 @@ export default function Reading() {
         setError(e.message);
         requested.current = false;
       });
-  }, [chosen, c, chapters.length, entries, error]);
+  }, [wantOrigin, chosen, c, chapters.length, entries, error]);
 
   // 회고: 1장이 있고, 아직 안 쓰인 채점 일기 3편 이상, 일요일(부터)이면 한 번 생성
   const pool = retroPool(entries, chosen, reading);
   const retroReady = chapters.length > 0 && pool.length >= RETRO_STEP;
   const retroRequested = useRef(false);
+  const [wantRetro, setWantRetro] = useState(false); // 자동 생성 안 함 — 버튼으로만
   useEffect(() => {
-    if (!chosen || !c || !retroReady || retroRequested.current || !isSunday()) return;
-    const target = pool.slice(0, RETRO_STEP);
+    if (!wantRetro || !chosen || !c || !retroReady || retroRequested.current || !isSunday()) return;
+    const target = pool.slice(0, RETRO_MAX); // 모인 만큼 전부 (최소 3, 최대 7)
     const core = chosen.entryIds.map((id) => entries.find((e) => e.id === id)).filter((e) => e?.score);
     retroRequested.current = true;
     fetch("/api/reading", {
@@ -72,12 +76,14 @@ export default function Reading() {
         const { narrative } = await r.json();
         addChapter({ kind: "retro", createdAt: new Date().toISOString(), entryIds: target.map((e) => e.id), narrative });
         setCurrent(null); // 최근 장으로
+        setWantRetro(false);
+        retroRequested.current = false;
       })
       .catch((e) => {
         setError(e.message);
         retroRequested.current = false;
       });
-  }, [chosen, c, retroReady, pool, entries, reading, error]);
+  }, [wantRetro, chosen, c, retroReady, pool, entries, reading, error]);
 
   if (!chosen || !c) {
     return (
@@ -123,21 +129,36 @@ export default function Reading() {
               ))}
               <li className="flex items-center gap-3 text-muted/60">
                 <span className="inline-block h-2 w-2 rounded-full border border-starlight/40" />
-                {pool.length >= RETRO_STEP ? (isSunday() ? "하늘의 답을 읽는 중" : "하늘의 답 · 일요일에 열려요") : `다음 답까지 ${Math.min(pool.length, RETRO_STEP)}/${RETRO_STEP}`}
+                {pool.length >= RETRO_STEP ? (isSunday() ? (wantRetro ? "하늘의 답을 여는 중" : "하늘의 답이 열렸어요") : "하늘의 답 · 일요일에 열려요") : `다음 답까지 ${Math.min(pool.length, RETRO_STEP)}/${RETRO_STEP}`}
               </li>
             </ol>
+            {chapters.length > 0 && retroReady && !wantRetro && (
+              <button
+                onClick={() => setWantRetro(true)}
+                disabled={!isSunday()}
+                title={isSunday() ? undefined : "일요일에 열려요"}
+                className="mt-4 rounded-full border border-gold/60 px-6 py-2 text-gold transition enabled:hover:bg-gold/10 disabled:border-muted/30 disabled:text-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+              >
+                하늘의 답 열기
+              </button>
+            )}
           </nav>
         </aside>
 
         {/* 우측 본문 */}
         <article className="max-w-2xl font-serif text-lg leading-loose [overflow-wrap:anywhere] [word-break:normal]">
           {chapter ? (
-            chapter.kind === "origin" ? <Origin n={chapter.narrative} /> : <RetroView r={chapter.narrative} previous={previousActionOf(chapters, idx)} />
+            chapter.kind === "origin" ? <Origin n={chapter.narrative} /> : <RetroView r={chapter.narrative} previous={previousActionOf(chapters, idx)} count={chapter.entryIds.length} />
+          ) : !wantOrigin && !error ? (
+            <div className="flex flex-col items-start gap-6">
+              <p className="text-muted">세 편의 기록이 {c.name}를 가리켰어요. 하늘이 무엇을 읽었는지 들어볼까요.</p>
+              <button onClick={() => setWantOrigin(true)} className={btn}>하늘 열기</button>
+            </div>
           ) : error ? (
             <p className="text-muted">
               지금은 하늘이 흐려요. <span className="text-sm">({error})</span>
               <br />
-              <button onClick={() => { setError(null); }} className="mt-4 underline hover:text-starlight">다시 읽기</button>
+              <button onClick={() => { setError(null); setWantOrigin(true); }} className="mt-4 underline hover:text-starlight">다시 열기</button>
             </p>
           ) : (
             <p className="text-muted">
@@ -210,7 +231,9 @@ function Origin({ n }: { n: Narrative }) {
   );
 }
 
-function RetroView({ r, previous }: { r: Retro; previous: string }) {
+const KOREAN_COUNT: Record<number, string> = { 3: "세", 4: "네", 5: "다섯", 6: "여섯", 7: "일곱" };
+
+function RetroView({ r, previous, count }: { r: Retro; previous: string; count: number }) {
   return (
     <>
       {previous && (
@@ -218,7 +241,7 @@ function RetroView({ r, previous }: { r: Retro; previous: string }) {
           <div className="rounded-xl border border-starlight/20 px-6 py-5 text-muted"><Paragraphs text={previous} plain /></div>
         </Section>
       )}
-      <Section title="세 편 사이에 있었던 것"><Paragraphs text={r.practice} /></Section>
+      <Section title={`${KOREAN_COUNT[count] ?? count} 편 사이에 있었던 것`}><Paragraphs text={r.practice} /></Section>
       <Section title="별자리가 뜬 날과 지금"><Paragraphs text={r.change} /></Section>
       <Section title={r.nextTitle}>
         <div className="rounded-xl border border-gold/50 px-6 py-5"><Paragraphs text={r.next} /></div>

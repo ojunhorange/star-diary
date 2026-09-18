@@ -100,7 +100,7 @@ export default function Home() {
             <Link href="/write" className={constellation ? btnQuiet : btn}>{cta}</Link>
           )}
           {constellation && (
-            <Link href="/reading" className={btn}>{hasStory && pool.length >= RETRO_STEP && isSunday() ? "하늘의 답 읽기" : "별자리 읽기"}</Link>
+            <Link href="/reading" className={btn}>{hasStory && pool.length >= RETRO_STEP && isSunday() ? "하늘의 답 열기" : "별자리 열기"}</Link>
           )}
         </div>
         {entries.length === 0 && (

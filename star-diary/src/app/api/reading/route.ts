@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   }
 
   const retro = body.mode === "retro";
-  const entries = body.entries.slice(0, 3);
+  const entries = body.entries.slice(0, retro ? 7 : 3);
   const keywords = entries.flatMap((e: { score: { keywords: string[] } }) => e.score.keywords);
   const texts = entries.map((e: { text: string }) => e.text);
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });

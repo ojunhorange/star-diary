@@ -219,7 +219,8 @@ export function subscribe(cb: () => void) {
 }
 
 // ---------- 회고(3편 단위) ----------
-export const RETRO_STEP = 3;
+export const RETRO_STEP = 3; // 최소 편수
+export const RETRO_MAX = 7; // 한 답에 넣는 최대 편수
 
 // 별자리 확정 후, 아직 어떤 장에도 쓰이지 않은 채점된 일기 (일기 날짜순)
 export function retroPool(entries: Entry[], chosen: Chosen | null, reading: Reading | null): Entry[] {
