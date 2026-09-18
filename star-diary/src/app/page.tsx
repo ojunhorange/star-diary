@@ -16,6 +16,9 @@ export default function Landing() {
           <Link href="/welcome" className={btnQuiet}>{LANDING.secondary}</Link>
           <Link href="/sky" className={btn}>{LANDING.primary}</Link>
         </div>
+        <Link href="/constellations" className="mt-6 text-sm text-muted underline-offset-4 transition hover:text-starlight hover:underline">
+          열 개의 하늘 미리 보기
+        </Link>
       </section>
     </main>
   );

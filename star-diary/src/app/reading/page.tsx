@@ -106,7 +106,10 @@ export default function Reading() {
       <div className="relative mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 gap-12 px-8 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         {/* 좌측 고정 패널 */}
         <aside className="md:sticky md:top-12 md:self-start">
-          <Link href="/sky" className="text-sm text-muted hover:text-starlight">← 하늘로</Link>
+          <div className="flex items-center gap-4 text-sm">
+            <Link href="/sky" className="text-muted hover:text-starlight">← 하늘로</Link>
+            <Link href="/constellations" className="text-muted hover:text-starlight">열 개의 하늘</Link>
+          </div>
           <ConstellationPreview c={c} filled={Math.min(entries.length, c.stars.length)} className="mt-6 w-full max-w-xs" />
           <h1 className="mt-4 font-serif text-2xl">{c.name}</h1>
           <p className="text-gold">{c.persona}</p>
