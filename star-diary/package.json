@@ -7,10 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:match": "node --experimental-strip-types --no-warnings scripts/match-check.mjs",
+    "check:match": "tsx scripts/match-check.mjs",
     "fewshot": "node scripts/build-fewshot.mjs",
-    "prebuild": "npm run fewshot",
-    "prompts": "tsx scripts/dump-prompts.mts"
+    "prebuild": "npm run fewshot && npm run content",
+    "prompts": "tsx scripts/dump-prompts.mts",
+    "content": "node scripts/build-content.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.23.0",

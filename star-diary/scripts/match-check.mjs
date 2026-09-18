@@ -1,6 +1,6 @@
 // 매칭 함수 검증: 알려진 채점값 3세트가 기대 별자리를 1위로 내는지. 실행: npm run check:match
 import assert from "node:assert/strict";
-import { match } from "../src/lib/match.ts";
+import { match } from "@/lib/match";
 const S = (O, C, E, A, N, nFacet = null) => ({ O, C, E, A, N, nFacet, emotions: [], keywords: [] });
 const cases = {
   lyra: [S(0, 2, 1, 0, 2, "불안"), S(0, 1, 1, 1, 2, "불안"), S(0, 2, 1, 0, 2, "불안")],
