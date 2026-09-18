@@ -5,15 +5,23 @@ import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import CharCount from "@/components/CharCount";
 import NightSky from "@/components/NightSky";
-import { addEntry, findByDay, getServerSnapshot, getSnapshot, isLocked, MIN_LENGTH, subscribe, today, updateEntry, type Entry } from "@/lib/store";
+import { addEntry, findByDay, getServerSnapshot, getSnapshot, isLocked, latestFreeDay, MIN_LENGTH, shiftDay, subscribe, today, updateEntry, type Entry } from "@/lib/store";
 
 export default function Write() {
   const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const [day, setDay] = useState(today);
+  // 기본 날짜 = 일기가 없는 가장 최근 날. 저장소가 로드되면 key가 바뀌어 다시 초기화됨
+  const defaultDay = latestFreeDay(entries);
+  return <DayPicker key={defaultDay} defaultDay={defaultDay} entries={entries} />;
+}
+
+function DayPicker({ defaultDay, entries }: { defaultDay: string; entries: Entry[] }) {
+  const [day, setDay] = useState(defaultDay);
   const existing = findByDay(entries, day);
   // 날짜나 해당 날짜의 일기가 바뀌면 입력창을 새로 초기화
   return <Editor key={`${day}:${existing?.id ?? "new"}`} day={day} setDay={setDay} existing={existing} />;
 }
+
+const arrow = "rounded-full px-2 text-muted transition hover:text-starlight disabled:opacity-30 disabled:hover:text-muted";
 
 function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) => void; existing?: Entry }) {
   const router = useRouter();
@@ -36,6 +44,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
 
       <section className="relative mx-auto flex min-h-screen w-full max-w-2xl flex-col justify-center gap-6 px-6 py-16">
         <p className="flex items-center gap-3 font-serif text-muted">
+          <button onClick={() => setDay(shiftDay(day, -1))} className={arrow} aria-label="하루 전">‹</button>
           <input
             type="date"
             value={day}
@@ -43,6 +52,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
             onChange={(e) => e.target.value && setDay(e.target.value)}
             className="rounded bg-transparent text-starlight [color-scheme:dark] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
           />
+          <button onClick={() => setDay(shiftDay(day, 1))} disabled={day === today()} className={arrow} aria-label="하루 뒤">›</button>
           {day !== today() && (
             <button onClick={() => setDay(today())} className="rounded-full border border-muted/40 px-3 py-1 text-sm hover:border-starlight hover:text-starlight">
               오늘
@@ -51,7 +61,10 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
           {existing && !locked && "· 이 날의 별을 다시 쓰는 중"}
         </p>
         {locked ? (
-          <p className="font-serif text-lg leading-loose">이 날의 별은 이미 별자리의 일부가 됐어요. 다른 날짜를 골라보세요.</p>
+          <>
+            <p className="min-h-72 whitespace-pre-wrap font-serif text-lg leading-loose [overflow-wrap:anywhere] [word-break:normal]">{existing!.text}</p>
+            <p className="text-sm text-muted">이 기록은 별자리의 일부가 되어 고정됐어요. 다른 날짜를 고르면 새 별을 찍을 수 있어요.</p>
+          </>
         ) : (
           <textarea
             autoFocus

@@ -52,7 +52,7 @@ export default function EntryModal({ entry, onClose }: { entry: Entry; onClose: 
         )}
 
         <footer className="mt-8 flex items-center justify-between text-sm">
-          {mode === "view" && locked && <span className="text-muted">별자리의 일부가 된 기록은 열람만 할 수 있어요.</span>}
+          {mode === "view" && locked && <span className="text-muted">이 기록은 별자리의 일부가 되어 고정됐어요. 그때의 나를 그대로 남겨두는 거예요.</span>}
           {mode === "view" && !locked && (
             <>
               <span />

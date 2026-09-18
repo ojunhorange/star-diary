@@ -13,13 +13,18 @@ const BACKGROUND_STARS = Array.from({ length: 220 }, () => ({
 
 export type Star = { x: number; y: number; dim?: boolean }; // dim = 아직 읽는 중
 export type Point = { x: number; y: number }; // 화면 픽셀 좌표
+export type Line = [Star, Star];
 
 export default function NightSky({
   stars = [],
+  ghosts = [],
+  lines = [],
   selected = null,
   onStarClick,
 }: {
   stars?: Star[];
+  ghosts?: Star[]; // 아직 안 채워진 별자리 자리
+  lines?: Line[]; // 채워진 별 사이의 연결선
   selected?: number | null;
   onStarClick?: (index: number, at: Point) => void;
 }) {
@@ -32,6 +37,12 @@ export default function NightSky({
     >
       {BACKGROUND_STARS.map((s, i) => (
         <circle key={i} cx={s.x} cy={s.y} r={s.r * 0.12} fill="var(--starlight)" opacity={s.o} />
+      ))}
+      {lines.map(([a, b], i) => (
+        <line key={`l${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--gold)" strokeWidth={0.12} opacity={0.45} className="transition-all duration-1000" />
+      ))}
+      {ghosts.map((g, i) => (
+        <circle key={`g${i}`} cx={g.x} cy={g.y} r={0.35} fill="none" stroke="var(--starlight)" strokeWidth={0.08} opacity={0.35} />
       ))}
       {stars.map((s, i) => {
         const on = selected === i;
@@ -46,8 +57,8 @@ export default function NightSky({
             }}
           >
             <circle cx={s.x} cy={s.y} r={3} fill="transparent" />
-            <circle cx={s.x} cy={s.y} r={on ? 2.4 : 1.6} fill="var(--gold)" opacity={s.dim ? 0.06 : on ? 0.32 : 0.18} className="transition-all" />
-            <circle cx={s.x} cy={s.y} r={0.45} fill="var(--gold)" opacity={s.dim ? 0.45 : 1} className="transition-all" />
+            <circle cx={s.x} cy={s.y} r={on ? 2.4 : 1.6} fill="var(--gold)" opacity={s.dim ? 0.06 : on ? 0.32 : 0.18} className="transition-all duration-1000" />
+            <circle cx={s.x} cy={s.y} r={0.45} fill="var(--gold)" opacity={s.dim ? 0.45 : 1} className="transition-all duration-1000" />
           </g>
         );
       })}
