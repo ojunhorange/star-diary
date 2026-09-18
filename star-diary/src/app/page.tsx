@@ -9,13 +9,13 @@ export default function Landing() {
   return (
     <main className="relative min-h-screen">
       <NightSky />
-      <section className="absolute inset-x-0 top-[34vh] flex flex-col items-center gap-4 text-center">
+      <section className="relative flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
         <h1 className="font-serif text-4xl tracking-wide">{LANDING.title}</h1>
         <p className="text-muted">{LANDING.tagline}</p>
-      </section>
-      <section className="absolute inset-x-0 bottom-[10vh] flex items-center justify-center gap-4">
-        <Link href="/welcome" className={btnQuiet}>{LANDING.secondary}</Link>
-        <Link href="/sky" className={btn}>{LANDING.primary}</Link>
+        <div className="mt-10 flex items-center gap-4">
+          <Link href="/welcome" className={btnQuiet}>{LANDING.secondary}</Link>
+          <Link href="/sky" className={btn}>{LANDING.primary}</Link>
+        </div>
       </section>
     </main>
   );
