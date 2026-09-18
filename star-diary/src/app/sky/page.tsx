@@ -6,7 +6,7 @@ import EntryModal from "@/components/EntryModal";
 import NightSky, { type Line, type Point, type Star } from "@/components/NightSky";
 import { byId, CORE_STARS, fittedStars } from "@/lib/constellations";
 import { loadDemo } from "@/lib/demo";
-import { requestScore } from "@/lib/score-client";
+import { failureMessage, getScoreErrorsServerSnapshot, getScoreErrorsSnapshot, requestScore, retryScore, subscribeScoreErrors } from "@/lib/score-client";
 import { coreEntries, currentMonth, findToday, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, getReadingServerSnapshot, getReadingSnapshot, getViewMonthServerSnapshot, getViewMonthSnapshot, isSunday, lineOpacity, monthEntries, monthLabel, placeStars, repairIfBroken, resetAll, RETRO_STEP, retroPool, setViewMonth, shiftMonth, subscribe } from "@/lib/store";
 
 const btn = "rounded-full border border-gold/60 px-8 py-3 text-[21px] text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
@@ -20,11 +20,12 @@ export default function Home() {
   const viewMonth = useSyncExternalStore(subscribe, getViewMonthSnapshot, getViewMonthServerSnapshot) || currentMonth();
   const [open, setOpen] = useState<{ i: number; at: Point } | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const errors = useSyncExternalStore(subscribeScoreErrors, getScoreErrorsSnapshot, getScoreErrorsServerSnapshot);
 
   // 옛 구조 이전·자가 복구, 아직 못 읽은 별 채점 시도 (중복 요청은 score-client가 막음)
   useEffect(() => {
     repairIfBroken();
-    all.filter((e) => !e.score).forEach(requestScore);
+    all.filter((e) => !e.score).forEach((e) => requestScore(e));
   }, [all]);
 
   useEffect(() => {
@@ -79,6 +80,8 @@ export default function Home() {
           : `별 ${entries.length}개 · 별자리까지 ${CORE_STARS - entries.length}개 · 별을 누르면 그날의 기록이 열려요`;
 
   const cta = !isThisMonth ? "이 달에 별 밝히기" : today ? "새로운 별 밝히기" : "오늘 별 하나 찍기";
+  const failedEntries = entries.filter((e) => !e.score && errors.failed.has(e.id));
+  const failure = failedEntries.length ? errors.failed.get(failedEntries[0].id) : undefined;
 
   return (
     <main className="relative min-h-screen">
@@ -102,7 +105,14 @@ export default function Home() {
       </header>
 
       <section className="absolute inset-x-0 bottom-[14vh] flex flex-col items-center gap-6 text-center">
-        <p className="text-lg text-muted">{status}</p>
+        <p className="text-lg text-muted">
+          {failure ? (
+            <>
+              {failureMessage(failure)}{" "}
+              <button onClick={() => failedEntries.forEach(retryScore)} className="text-gold underline-offset-4 hover:underline">다시 시도</button>
+            </>
+          ) : status}
+        </p>
         <div className="flex items-center gap-3">
           {pending ? (
             <Link href="/choose" className={btn}>별자리 고르기</Link>

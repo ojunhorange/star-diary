@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+import { failureMessage, getScoreErrorsServerSnapshot, getScoreErrorsSnapshot, retryScore, subscribeScoreErrors } from "@/lib/score-client";
 import CharCount from "@/components/CharCount";
 import { formatDate, isLocked, MIN_LENGTH, removeEntry, updateEntry, type Entry } from "@/lib/store";
 
@@ -12,6 +13,8 @@ export default function EntryModal({ entry, onClose }: { entry: Entry; onClose: 
   const [draft, setDraft] = useState(entry.text);
   const ready = draft.trim().length >= MIN_LENGTH;
   const locked = isLocked(entry);
+  const errors = useSyncExternalStore(subscribeScoreErrors, getScoreErrorsSnapshot, getScoreErrorsServerSnapshot);
+  const failure = errors.failed.get(entry.id);
 
   const date = formatDate(entry.createdAt);
 
@@ -45,6 +48,11 @@ export default function EntryModal({ entry, onClose }: { entry: Entry; onClose: 
                   {em}
                 </span>
               ))
+            ) : failure ? (
+              <span className="text-muted/70">
+                {failureMessage(failure)}{" "}
+                <button onClick={() => retryScore(entry)} className="ml-1 text-gold underline-offset-4 hover:underline">다시 읽기</button>
+              </span>
             ) : (
               <span className="text-muted/70">아직 읽는 중이에요</span>
             )}

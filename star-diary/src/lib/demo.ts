@@ -78,4 +78,5 @@ export function loadDemo() {
     chooseConstellation(monthOf(`${m}-01T12:00:00`), p.constellation, [p.constellation], ids);
   }
   localStorage.setItem("star-diary:debug-sunday", "1"); // 예시 모드에선 일요일 조건 통과 → 회고까지 바로 체험
+  localStorage.setItem("star-diary:demo", "1"); // 예시 모드: 이야기는 API 대신 캐시 사용
 }

@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import ConstellationPreview from "@/components/ConstellationPreview";
 import NightSky from "@/components/NightSky";
-import { byId } from "@/lib/constellations";
+import { byId, type Constellation } from "@/lib/constellations";
 import type { Narrative, Retro } from "@/lib/narrative";
-import { addChapter, currentMonth, formatDate, isSunday, lastAction, monthEntries, monthLabel, repairIfBroken, RETRO_MAX, RETRO_STEP, retroPool, getChosenServerSnapshot, getChosenSnapshot, getReadingServerSnapshot, getReadingSnapshot, getServerSnapshot, getSnapshot, getViewMonthServerSnapshot, getViewMonthSnapshot, subscribe, type Chapter } from "@/lib/store";
+import { DEMO_NARRATIVES } from "@/data/demo-narratives";
+import { addChapter, currentMonth, isDemo, formatDate, isSunday, lastAction, monthEntries, monthLabel, repairIfBroken, RETRO_MAX, RETRO_STEP, retroPool, getChosenServerSnapshot, getChosenSnapshot, getReadingServerSnapshot, getReadingSnapshot, getServerSnapshot, getSnapshot, getViewMonthServerSnapshot, getViewMonthSnapshot, subscribe, type Chapter } from "@/lib/store";
 
 const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold text-[19px]";
 
@@ -35,6 +36,12 @@ export default function Reading() {
     const core = chosen.entryIds.map((id) => entries.find((e) => e.id === id)).filter((e) => e?.score);
     if (core.length < 3) return;
     requested.current = true;
+    // 예시 모드: API를 부르지 않고 캐시된 이야기를 붙임 (사용량 절약)
+    const cachedOrigin = isDemo() ? ({ argo: DEMO_NARRATIVES.argo, hercules: DEMO_NARRATIVES.hercules, gemini: DEMO_NARRATIVES.gemini } as Record<string, Narrative | undefined>)[chosen.id] : undefined;
+    if (cachedOrigin) {
+      addChapter(month, { kind: "origin", createdAt: new Date().toISOString(), narrative: cachedOrigin });
+      return;
+    }
     fetch("/api/reading", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -64,6 +71,13 @@ export default function Reading() {
     const target = pool.slice(0, RETRO_MAX); // 모인 만큼 전부 (최소 3, 최대 7)
     const core = chosen.entryIds.map((id) => entries.find((e) => e.id === id)).filter((e) => e?.score);
     retroRequested.current = true;
+    if (isDemo() && chosen.id === "argo" && chapters.filter((ch) => ch.kind === "retro").length === 0) {
+      addChapter(month, { kind: "retro", createdAt: new Date().toISOString(), entryIds: target.map((e) => e.id), narrative: DEMO_NARRATIVES.argoRetro });
+      setCurrent(null);
+      setWantRetro(false);
+      retroRequested.current = false;
+      return;
+    }
     fetch("/api/reading", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -162,11 +176,7 @@ export default function Reading() {
               <button onClick={() => setWantOrigin(true)} className={btn}>하늘 열기</button>
             </div>
           ) : error ? (
-            <p className="text-muted">
-              지금은 하늘이 흐려요. <span className="text-sm">({error})</span>
-              <br />
-              <button onClick={() => { setError(null); setWantOrigin(true); }} className="mt-4 underline hover:text-starlight text-[19px]">다시 열기</button>
-            </p>
+            <Fallback c={c} limit={/429|RESOURCE_EXHAUSTED/.test(error)} onRetry={() => { setError(null); setWantOrigin(true); }} />
           ) : (
             <p className="text-muted">
               <span className="twinkle inline-block text-gold">✦</span> 하늘을 읽는 중이에요. 세 편의 기록과 신화를 나란히 놓고 있어요.
@@ -253,6 +263,34 @@ function RetroView({ r, previous, count }: { r: Retro; previous: string; count: 
       <Section title={r.nextTitle}>
         <div className="rounded-xl border border-gold/50 px-6 py-5"><Paragraphs text={r.next} /></div>
         <p className="mt-6 text-sm italic text-muted">{r.closing}</p>
+      </Section>
+    </>
+  );
+}
+
+// 생성 실패 시: 저장하지 않는 기본 이야기 (조언 전략 시트 그대로). 사용자 기록 인용은 없으니 그 점을 분명히 알림
+function Fallback({ c, limit, onRetry }: { c: Constellation; limit: boolean; onRetry: () => void }) {
+  return (
+    <>
+      <div className="rounded-xl border border-starlight/20 bg-sky-low/80 px-6 py-5 text-[17px] leading-relaxed text-muted">
+        {limit ? "오늘 하늘이 너무 붐벼서 당신의 기록으로 이야기를 쓰지 못했어요." : "지금은 하늘이 흐려서 당신의 기록으로 이야기를 쓰지 못했어요."}{" "}
+        대신 이 별자리의 기본 이야기를 보여드려요 — 당신의 일기는 담겨 있지 않습니다.{" "}
+        <button onClick={onRetry} className="text-gold underline-offset-4 hover:underline">잠시 뒤 다시 열기</button>
+      </div>
+      {c.myth && (
+        <Section title={`${c.name}의 신화`}>
+          <Paragraphs text={c.myth} plain />
+          <p className="mt-6 text-muted">신화가 말하는 것 — {c.lesson}</p>
+        </Section>
+      )}
+      <Section title={`${c.philosopher}, ${c.concept}`}>
+        <Paragraphs text={c.core} plain />
+      </Section>
+      <Section title="이 별자리가 건네는 방향">
+        <div className="rounded-xl border border-gold/50 px-6 py-5">
+          <p>없애지 말 것 — {c.keep}</p>
+          <p className="mt-3">바꿔볼 것 — {c.change}</p>
+        </div>
       </Section>
     </>
   );

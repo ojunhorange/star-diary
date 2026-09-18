@@ -150,7 +150,7 @@ export function setViewMonth(m: string) {
 
 // 전부 지우기 (시연 후 초기화). 온보딩 완료 표시는 유지
 export function resetAll() {
-  [KEY, CKEY, RKEY, VKEY, "star-diary:constellation", "star-diary:reading", "star-diary:debug-sunday"].forEach((k) => localStorage.removeItem(k));
+  [KEY, CKEY, RKEY, VKEY, "star-diary:constellation", "star-diary:reading", "star-diary:debug-sunday", "star-diary:demo"].forEach((k) => localStorage.removeItem(k));
   notify();
 }
 
@@ -287,3 +287,6 @@ export function lastAction(reading: Reading | null | undefined) {
   if (!ch) return "";
   return ch.kind === "origin" ? ch.narrative.action : ch.narrative.next;
 }
+
+// 예시 모드 여부 (이야기를 API 대신 캐시에서)
+export const isDemo = () => localStorage.getItem("star-diary:demo") === "1";
