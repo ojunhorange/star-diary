@@ -7,6 +7,7 @@ const errors = [];
 const read = (p) => fs.readFileSync(p, "utf8").replace(/\r\n/g, "\n");
 const section = (text, title) => text.split(new RegExp(`^## ${title}\\s*$`, "m"))[1]?.split(/^## /m)[0]?.trim();
 const line = (text, label) => text.match(new RegExp(`^${label}:\\s*(.+)$`, "m"))?.[1]?.trim();
+const optional = (block, label) => (block && line(block, label)) ?? ""; // 비워두면 LLM이 직접 만듦
 
 // ---- 별자리 10개 ----
 const DIR = "content/constellations";
@@ -28,11 +29,11 @@ for (const file of fs.readdirSync(DIR).filter((f) => f.endsWith(".md") && f !== 
   const philosopher = pick(phil, "철학자");
   const concept = pick(phil, "개념");
   const core = pick(phil, "핵심");
-  const hint = pick(phil, "비유 힌트");
+  const hint = optional(phil, "비유 힌트");
   const strat = section(text, "조언 전략") ?? fail("'## 조언 전략' 섹션 없음");
   const keep = pick(strat, "없애지 말 것");
   const change = pick(strat, "바꿀 것");
-  const action = pick(strat, "행동의 형태");
+  const action = optional(strat, "행동의 형태");
   const myth = section(text, "신화 참고자료") ?? ""; // 선택. LLM이 베끼지 않고 참고만 함
 
   content[id] = { name, persona, tagline, tone, lesson, philosopher, concept, core, hint, keep, change, action, myth };
