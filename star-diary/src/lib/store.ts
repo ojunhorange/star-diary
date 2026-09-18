@@ -47,6 +47,10 @@ export type Chosen = {
 export type Chapter = { kind: "origin"; createdAt: string; narrative: Narrative };
 export type Reading = { chapters: Chapter[] };
 
+const OKEY = "star-diary:onboarded";
+export const isOnboarded = () => !!localStorage.getItem(OKEY);
+export const markOnboarded = () => localStorage.setItem(OKEY, new Date().toISOString());
+
 const KEY = "star-diary:entries";
 const CKEY = "star-diary:constellation";
 const RKEY = "star-diary:reading";

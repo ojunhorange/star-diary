@@ -1,20 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import EntryModal from "@/components/EntryModal";
 import NightSky, { type Line, type Point, type Star } from "@/components/NightSky";
 import { byId, CORE_STARS, fittedStars } from "@/lib/constellations";
 import { requestScore } from "@/lib/score-client";
-import { coreEntries, findToday, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, placeStars, repairIfBroken, subscribe } from "@/lib/store";
+import { coreEntries, findToday, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, isOnboarded, placeStars, repairIfBroken, subscribe } from "@/lib/store";
 
 const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
 const btnQuiet = "rounded-full px-6 py-3 text-muted transition hover:text-starlight";
 
 export default function Home() {
+  const router = useRouter();
   const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const chosen = useSyncExternalStore(subscribe, getChosenSnapshot, getChosenServerSnapshot);
   const [open, setOpen] = useState<{ i: number; at: Point } | null>(null);
+
+  // 첫 방문이면 온보딩으로
+  useEffect(() => {
+    if (!isOnboarded()) router.replace("/welcome");
+  }, [router]);
 
   // 아직 못 읽은 별은 홈에 올 때마다 채점 시도 (중복 요청은 score-client가 막음)
   useEffect(() => {
