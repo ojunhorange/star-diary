@@ -1,3 +1,5 @@
+import { SERVICE_CONTEXT } from "@/lib/service-context";
+
 // 일기 1편 → Big5(OCEAN) 신호. 정수 −2~+2, N 세부 요인, 감정 2개, 키워드 3~5개
 export type Score = {
   O: number;
@@ -29,7 +31,9 @@ export const SCORE_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-export const SCORING_SYSTEM = `당신은 한국어 일기에서 Big5(OCEAN) 성격 신호를 읽는 채점자입니다. 창의성은 필요 없습니다. 아래 채점표를 매뉴얼처럼 따르고, 같은 일기에는 항상 같은 점수를 매기세요.
+export const SCORING_SYSTEM = `${SERVICE_CONTEXT}
+# 당신의 역할
+당신은 한국어 일기에서 Big5(OCEAN) 성격 신호를 읽는 채점자입니다. 창의성은 필요 없습니다. 아래 채점표를 매뉴얼처럼 따르고, 같은 일기에는 항상 같은 점수를 매기세요.
 
 ## 점수: 각 축 −2~+2 정수 (5단계)
 0 = 이 일기에서 그 축의 신호가 없거나 중립. ±1 = 뚜렷한 신호 1개. ±2 = 반복되거나 강한 신호.

@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:match": "node --experimental-strip-types --no-warnings scripts/match-check.mjs"
+    "check:match": "node --experimental-strip-types --no-warnings scripts/match-check.mjs",
+    "fewshot": "node scripts/build-fewshot.mjs",
+    "prebuild": "npm run fewshot",
+    "prompts": "tsx scripts/dump-prompts.mts"
   },
   "dependencies": {
     "@google/genai": "^2.23.0",
@@ -23,6 +26,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   }
 }

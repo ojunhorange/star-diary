@@ -1,4 +1,5 @@
 import { byId, CORE_STARS, fittedStars } from "@/lib/constellations";
+import type { Narrative } from "@/lib/narrative";
 import type { Score } from "@/lib/scoring";
 
 export type Entry = {
@@ -42,8 +43,13 @@ export type Chosen = {
   chosenAt: string;
 };
 
+// 이야기는 장(章)으로 쌓임. 1장 = origin(고정), 이후 weekly가 뒤에 붙음 (추후)
+export type Chapter = { kind: "origin"; createdAt: string; narrative: Narrative };
+export type Reading = { chapters: Chapter[] };
+
 const KEY = "star-diary:entries";
 const CKEY = "star-diary:constellation";
+const RKEY = "star-diary:reading";
 const CHANGE = "star-diary:change"; // 같은 탭 안에서는 storage 이벤트가 안 오므로 직접 알림
 
 export function loadEntries(): Entry[] {
@@ -103,6 +109,7 @@ export function repairIfBroken(entries: Entry[], chosen: Chosen | null) {
   const ids = new Set(entries.map((e) => e.id));
   if (chosen.entryIds.every((id) => ids.has(id))) return;
   localStorage.removeItem(CKEY);
+  localStorage.removeItem(RKEY);
   save(entries.map((e) => ({ ...e, constellationId: undefined })));
 }
 
@@ -150,6 +157,30 @@ export function getChosenSnapshot(): Chosen | null {
   return cachedChosen;
 }
 export const getChosenServerSnapshot = () => null;
+
+export function loadReading(): Reading | null {
+  try {
+    return JSON.parse(localStorage.getItem(RKEY) ?? "null");
+  } catch {
+    return null;
+  }
+}
+export function addChapter(ch: Chapter) {
+  const r = loadReading() ?? { chapters: [] };
+  localStorage.setItem(RKEY, JSON.stringify({ chapters: [...r.chapters, ch] }));
+  window.dispatchEvent(new Event(CHANGE));
+}
+let cachedRRaw = "";
+let cachedReading: Reading | null = null;
+export function getReadingSnapshot(): Reading | null {
+  const raw = localStorage.getItem(RKEY) ?? "";
+  if (raw !== cachedRRaw) {
+    cachedRRaw = raw;
+    cachedReading = loadReading();
+  }
+  return cachedReading;
+}
+export const getReadingServerSnapshot = () => null;
 export function subscribe(cb: () => void) {
   window.addEventListener("storage", cb);
   window.addEventListener(CHANGE, cb);
