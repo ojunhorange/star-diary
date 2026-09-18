@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import EntryModal from "@/components/EntryModal";
 import NightSky, { type Point } from "@/components/NightSky";
+import { requestScore } from "@/lib/score-client";
 import { findToday, getServerSnapshot, getSnapshot, isLocked, subscribe } from "@/lib/store";
 
 const STARS_TO_COMPLETE = 3; // 데모용. 실서비스 5
@@ -11,6 +12,11 @@ const STARS_TO_COMPLETE = 3; // 데모용. 실서비스 5
 export default function Home() {
   const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const [open, setOpen] = useState<{ i: number; at: Point } | null>(null);
+
+  // 아직 못 읽은 별은 홈에 올 때마다 채점 시도 (중복 요청은 score-client가 막음)
+  useEffect(() => {
+    entries.filter((e) => !e.score).forEach(requestScore);
+  }, [entries]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(null);
@@ -26,7 +32,7 @@ export default function Home() {
   return (
     <main className="relative min-h-screen">
       <NightSky
-        stars={entries.map((e) => e.star)}
+        stars={entries.map((e) => ({ ...e.star, dim: !e.score }))}
         selected={open?.i ?? null}
         onStarClick={(i, at) => setOpen(open?.i === i ? null : { i, at })}
       />

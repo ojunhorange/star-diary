@@ -11,7 +11,7 @@ const BACKGROUND_STARS = Array.from({ length: 220 }, () => ({
   o: 0.25 + rand() * 0.6,
 }));
 
-export type Star = { x: number; y: number };
+export type Star = { x: number; y: number; dim?: boolean }; // dim = 아직 읽는 중
 export type Point = { x: number; y: number }; // 화면 픽셀 좌표
 
 export default function NightSky({
@@ -46,8 +46,8 @@ export default function NightSky({
             }}
           >
             <circle cx={s.x} cy={s.y} r={3} fill="transparent" />
-            <circle cx={s.x} cy={s.y} r={on ? 2.4 : 1.6} fill="var(--gold)" opacity={on ? 0.32 : 0.18} className="transition-all" />
-            <circle cx={s.x} cy={s.y} r={0.45} fill="var(--gold)" />
+            <circle cx={s.x} cy={s.y} r={on ? 2.4 : 1.6} fill="var(--gold)" opacity={s.dim ? 0.06 : on ? 0.32 : 0.18} className="transition-all" />
+            <circle cx={s.x} cy={s.y} r={0.45} fill="var(--gold)" opacity={s.dim ? 0.45 : 1} className="transition-all" />
           </g>
         );
       })}

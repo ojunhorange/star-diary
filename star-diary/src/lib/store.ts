@@ -1,9 +1,12 @@
+import type { Score } from "@/lib/scoring";
+
 export type Entry = {
   id: string;
   createdAt: string; // ISO
   text: string;
   star: { x: number; y: number }; // 밤하늘 위 좌표 (0~100)
   constellationId?: string; // 완성된 별자리에 속하면 설정됨(4단계) → 수정·삭제 불가, 열람만
+  score?: Score; // Gemini 채점 결과. 없으면 아직 못 읽은 상태(재시도 대상)
 };
 
 export const MIN_LENGTH = 30;
@@ -53,7 +56,12 @@ export function addEntry(text: string, day = today()): Entry {
 }
 
 export function updateEntry(id: string, text: string) {
-  save(loadEntries().map((e) => (e.id === id ? { ...e, text } : e)));
+  // 글이 바뀌면 점수는 무효 → 다시 채점
+  save(loadEntries().map((e) => (e.id === id ? { ...e, text, score: undefined } : e)));
+}
+
+export function setScore(id: string, score: Score) {
+  save(loadEntries().map((e) => (e.id === id ? { ...e, score } : e)));
 }
 
 export function removeEntry(id: string) {

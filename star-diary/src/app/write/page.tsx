@@ -25,6 +25,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
     if (!ready || locked) return;
     if (existing) updateEntry(existing.id, text.trim());
     else addEntry(text.trim(), day);
+    // 채점은 홈이 "점수 없는 별"을 보고 즉시 요청함(a-1)
     router.push("/");
   }
 

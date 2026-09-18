@@ -36,6 +36,21 @@ export default function EntryModal({ entry, onClose }: { entry: Entry; onClose: 
           </p>
         )}
 
+        {mode !== "edit" && (
+          <p className="mt-6 flex items-center gap-2 text-sm">
+            <span className="text-muted">이 별에서 읽은 것</span>
+            {entry.score ? (
+              entry.score.emotions.map((em) => (
+                <span key={em} className="rounded-full border border-gold/40 px-3 py-0.5 text-gold">
+                  {em}
+                </span>
+              ))
+            ) : (
+              <span className="text-muted/70">아직 읽는 중이에요</span>
+            )}
+          </p>
+        )}
+
         <footer className="mt-8 flex items-center justify-between text-sm">
           {mode === "view" && locked && <span className="text-muted">별자리의 일부가 된 기록은 열람만 할 수 있어요.</span>}
           {mode === "view" && !locked && (
