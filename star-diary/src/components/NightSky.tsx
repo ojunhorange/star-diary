@@ -12,11 +12,20 @@ const BACKGROUND_STARS = Array.from({ length: 220 }, () => ({
 }));
 
 export type Star = { x: number; y: number };
+export type Point = { x: number; y: number }; // 화면 픽셀 좌표
 
-export default function NightSky({ stars = [] }: { stars?: Star[] }) {
+export default function NightSky({
+  stars = [],
+  selected = null,
+  onStarClick,
+}: {
+  stars?: Star[];
+  selected?: number | null;
+  onStarClick?: (index: number, at: Point) => void;
+}) {
   return (
     <svg
-      aria-hidden
+      aria-hidden={!onStarClick}
       className="fixed inset-0 h-full w-full"
       viewBox="0 0 100 100"
       preserveAspectRatio="xMidYMid slice"
@@ -24,12 +33,24 @@ export default function NightSky({ stars = [] }: { stars?: Star[] }) {
       {BACKGROUND_STARS.map((s, i) => (
         <circle key={i} cx={s.x} cy={s.y} r={s.r * 0.12} fill="var(--starlight)" opacity={s.o} />
       ))}
-      {stars.map((s, i) => (
-        <g key={`u${i}`} className="twinkle" style={{ animationDelay: `${i * 0.7}s` }}>
-          <circle cx={s.x} cy={s.y} r={1.6} fill="var(--gold)" opacity={0.18} />
-          <circle cx={s.x} cy={s.y} r={0.45} fill="var(--gold)" />
-        </g>
-      ))}
+      {stars.map((s, i) => {
+        const on = selected === i;
+        return (
+          <g
+            key={`u${i}`}
+            className={`twinkle ${onStarClick ? "cursor-pointer" : ""}`}
+            style={{ animationDelay: `${i * 0.7}s`, animationPlayState: on ? "paused" : undefined }}
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              onStarClick?.(i, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+            }}
+          >
+            <circle cx={s.x} cy={s.y} r={3} fill="transparent" />
+            <circle cx={s.x} cy={s.y} r={on ? 2.4 : 1.6} fill="var(--gold)" opacity={on ? 0.32 : 0.18} className="transition-all" />
+            <circle cx={s.x} cy={s.y} r={0.45} fill="var(--gold)" />
+          </g>
+        );
+      })}
     </svg>
   );
 }
