@@ -37,9 +37,11 @@ export default function Home() {
 
   // 별 위치·연결선·빈 자리
   const positions = placeStars(entries, chosen);
+  const slots = constellation?.stars.length ?? Infinity;
   const stars: Star[] = positions.map((p, i) => {
     const d = new Date(entries[i].createdAt);
-    return { ...p, dim: !entries[i].score, label: `${d.getMonth() + 1}월 ${d.getDate()}일` };
+    const rank = !chosen ? 0 : chosen.entryIds.includes(entries[i].id) ? 0 : i < slots ? 1 : 2; // 0 핵심, 1 채움, 2 선 위
+    return { ...p, dim: !entries[i].score, label: `${d.getMonth() + 1}월 ${d.getDate()}일`, size: [1, 0.85, 0.6][rank] };
   });
   const now = new Date();
   let lines: Line[] = [];

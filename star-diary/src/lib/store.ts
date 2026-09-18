@@ -139,10 +139,16 @@ export function placeStars(entries: Entry[], chosen: Chosen | null) {
   const core = chosen.entryIds;
   const rest = entries.filter((e) => !core.includes(e.id)).map((e) => e.id);
   const stars = fittedStars(c);
+  // 자리를 다 채운 뒤의 별: 연결선 위에 순서대로. 첫 바퀴는 선의 1/2 지점, 다음 바퀴는 1/3·2/3 … (겹치지 않게)
   return entries.map((e) => {
     const i = core.includes(e.id) ? core.indexOf(e.id) : CORE_STARS + rest.indexOf(e.id);
     const pos = stars[i];
-    return pos ? { x: pos[0], y: pos[1] } : e.star;
+    if (pos) return { x: pos[0], y: pos[1] };
+    const k = i - stars.length;
+    const [a, b] = c.edges[k % c.edges.length];
+    const round = Math.floor(k / c.edges.length); // 0: 1/2, 1: 1/3, 2: 2/3, 3: 1/4 …
+    const t = round === 0 ? 0.5 : round === 1 ? 1 / 3 : round === 2 ? 2 / 3 : 0.25;
+    return { x: stars[a][0] + (stars[b][0] - stars[a][0]) * t, y: stars[a][1] + (stars[b][1] - stars[a][1]) * t };
   });
 }
 
