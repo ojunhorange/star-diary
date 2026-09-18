@@ -20,12 +20,15 @@ export type Constellation = Shape & {
   persona: string;
   tagline: string;
   tone: "고쳐보기" | "정리하기" | "넓히기" | "지키기";
-  myth: string; // 서사 프롬프트의 참고자료
   lesson: string; // 표면적 교훈
   philosopher: string;
   concept: string;
-  explain: string; // 고등학생용 풀이 + 비유
-  direction: string; // 관통하는 조언 방향
+  core: string; // 철학 핵심 한 줄
+  hint: string; // 비유 힌트
+  keep: string; // 조언 전략: 없애지 말 것
+  change: string; // 조언 전략: 바꿀 것 (A → B)
+  action: string; // 조언 전략: 행동의 형태
+  myth: string; // 신화 참고자료 (선택, 베끼지 않음)
 };
 
 export const CORE_STARS = 3;
@@ -40,8 +43,8 @@ const SHAPES: Shape[] = [
   },
   {
     id: "eridanus",
-    profile: { O: 0, C: 1, E: -1, A: 0, N: 1 },
-    nFacet: "우울",
+    profile: { O: 0, C: 1, E: 1, A: -1, N: 1 },
+    nFacet: "충동",
     stars: [[55, 40], [50, 52], [40, 60], [65, 35], [75, 25], [35, 70], [25, 78]],
     edges: [[0, 1], [1, 2], [3, 0], [4, 3], [2, 5], [5, 6]],
   },

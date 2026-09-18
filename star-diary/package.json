@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "check:match": "tsx scripts/match-check.mjs",
-    "fewshot": "node scripts/build-fewshot.mjs",
-    "prebuild": "npm run fewshot && npm run content",
+    "prebuild": "npm run content",
     "prompts": "tsx scripts/dump-prompts.mts",
     "content": "node scripts/build-content.mjs"
   },

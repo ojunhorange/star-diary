@@ -22,17 +22,20 @@ for (const file of fs.readdirSync(DIR).filter((f) => f.endsWith(".md") && f !== 
   const tagline = line(text, "한 줄") ?? fail("'한 줄:' 줄 없음");
   const tone = line(text, "톤") ?? fail("'톤:' 줄 없음");
   if (tone && !TONES.includes(tone)) fail(`톤은 ${TONES.join("/")} 중 하나여야 함 (지금: ${tone})`);
-  const myth = section(text, "신화") ?? fail("'## 신화' 섹션 없음");
   const lesson = section(text, "표면적 교훈") ?? fail("'## 표면적 교훈' 섹션 없음");
   const phil = section(text, "철학") ?? fail("'## 철학' 섹션 없음");
-  const pick = (label) => (phil && line(phil, label)) ?? fail(`철학 섹션에 '${label}:' 줄 없음`);
-  const philosopher = pick("철학자");
-  const concept = pick("개념");
-  const explain = pick("풀이");
-  const direction = pick("조언 방향");
-  if (myth && myth.length < 300) fail(`신화가 너무 짧음 (${myth.length}자, 300자 이상 권장)`);
+  const pick = (block, label) => (block && line(block, label)) ?? fail(`'${label}:' 줄 없음`);
+  const philosopher = pick(phil, "철학자");
+  const concept = pick(phil, "개념");
+  const core = pick(phil, "핵심");
+  const hint = pick(phil, "비유 힌트");
+  const strat = section(text, "조언 전략") ?? fail("'## 조언 전략' 섹션 없음");
+  const keep = pick(strat, "없애지 말 것");
+  const change = pick(strat, "바꿀 것");
+  const action = pick(strat, "행동의 형태");
+  const myth = section(text, "신화 참고자료") ?? ""; // 선택. LLM이 베끼지 않고 참고만 함
 
-  content[id] = { name, persona, tagline, tone, myth, lesson, philosopher, concept, explain, direction };
+  content[id] = { name, persona, tagline, tone, lesson, philosopher, concept, core, hint, keep, change, action, myth };
 }
 
 // ---- 온보딩 3장 ----

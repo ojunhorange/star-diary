@@ -14,12 +14,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "GEMINI_API_KEY not set" }, { status: 503 });
   }
 
-  const input: NarrativeInput = {
-    constellation,
-    candidates: body.candidates,
-    chosenFirst: !!body.chosenFirst,
-    entries: body.entries.slice(0, 3),
-  };
+  const input: NarrativeInput = { constellation, entries: body.entries.slice(0, 3) };
   const keywords = input.entries.flatMap((e) => e.score.keywords);
   const texts = input.entries.map((e) => e.text);
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -46,7 +41,7 @@ export async function POST(req: Request) {
         if (/[A-Za-z]/.test(n.mythTitle)) n.mythTitle = `${constellation.name}의 이야기`;
         const g = grounded(n, keywords, texts);
         if (g.ok) return Response.json({ narrative: n, model, grounded: g });
-        console.warn(`[reading] ${model} attempt ${attempt}: grounded myth=${g.inMyth} total=${g.total}, retrying`);
+        console.warn(`[reading] ${model} attempt ${attempt}: grounded place=${g.inPlace} total=${g.total}, retrying`);
         fallback = n;
       } catch (e) {
         lastError = e instanceof Error ? e.message : String(e);

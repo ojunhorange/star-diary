@@ -29,8 +29,6 @@ export default function Reading() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         constellationId: chosen.id,
-        candidates: chosen.candidates.map((id) => byId(id)?.name ?? id),
-        chosenFirst: chosen.candidates[0] === chosen.id,
         entries: core.map((e) => ({ date: formatDate(e!.createdAt), text: e!.text, score: e!.score })),
       }),
     })
@@ -72,6 +70,9 @@ export default function Reading() {
           <p className="text-gold">{c.persona}</p>
           <p className="mt-1 text-sm text-muted">{c.philosopher} · {c.concept}</p>
           <p className="mt-1 text-sm text-muted">{formatDate(chosen.chosenAt)}에 완성된 하늘</p>
+          {chosen.candidates[0] !== chosen.id && (
+            <p className="mt-3 text-sm text-muted">기록이 먼저 가리킨 곳은 {byId(chosen.candidates[0])?.name}이었고, 당신은 이 하늘을 골랐어요.</p>
+          )}
 
           <nav className="mt-8">
             <p className="text-sm text-muted">이야기</p>
@@ -131,11 +132,11 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 // 인용부호가 든 문단 = 사용자의 장면 → 왼쪽 금빛 세로선
-function Paragraphs({ text }: { text: string }) {
+function Paragraphs({ text, plain = false }: { text: string; plain?: boolean }) {
   return (
     <>
       {text.split(/\n+/).filter(Boolean).map((p, i) => (
-        <p key={i} className={`mt-4 first:mt-0 ${/[“”"]/.test(p) ? "border-l-2 border-gold/60 pl-4" : ""}`}>{p}</p>
+        <p key={i} className={`mt-4 first:mt-0 ${!plain && /[“”"]/.test(p) ? "border-l-2 border-gold/60 pl-4" : ""}`}>{p}</p>
       ))}
     </>
   );
@@ -155,9 +156,10 @@ function Origin({ n }: { n: Narrative }) {
     <>
       <Section title="세 편의 기록에서 반복된 것"><Paragraphs text={n.pattern} /></Section>
       <Section title={n.mythTitle}>
-        <Paragraphs text={n.myth} />
+        <Paragraphs text={n.myth} plain />
         <p className="mt-6 text-muted">신화가 말하는 것 — {n.lesson.replace(/^신화가 말하는 것\s*[:—-]\s*/, "")}</p>
       </Section>
+      <Section title="이 이야기에서 당신이 서 있는 자리"><Paragraphs text={n.place} /></Section>
       <Section title={n.reframeTitle}><Paragraphs text={n.reframe} /></Section>
       <Section title={n.actionTitle}>
         <div className="rounded-xl border border-gold/50 px-6 py-5"><Paragraphs text={n.action} /></div>

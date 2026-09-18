@@ -10,7 +10,7 @@ const entries = [
   { date: "2026년 9월 18일 (금)", text: diary, score: { O:0,C:2,E:1,A:0,N:2,nFacet:"불안" as const, emotions:["불안","예감"], keywords:["잘 됐다","오히려 불안","터질 것 같은","되돌렸다"] } },
 ];
 const lyra = CONSTELLATIONS.find((c) => c.id === "lyra")!;
-const user = narrativeUserMessage({ constellation: lyra, candidates: ["거문고자리", "안드로메다자리"], chosenFirst: true, entries });
+const user = narrativeUserMessage({ constellation: lyra, entries });
 const out = `==================== [1] /api/score (일기 1편마다) ====================
 --- systemInstruction (${SCORING_SYSTEM.length}자) ---
 ${SCORING_SYSTEM}
