@@ -5,7 +5,7 @@ const S = (O, C, E, A, N, nFacet = null) => ({ O, C, E, A, N, nFacet, emotions: 
 const cases = {
   lyra: [S(0, 2, 1, 0, 2, "불안"), S(0, 1, 1, 1, 2, "불안"), S(0, 2, 1, 0, 2, "불안")],
   perseus: [S(1, 2, 1, 1, -1), S(1, 1, 2, 1, -2), S(1, 0, 1, 1, 0, "자의식")],
-  argo: [S(2, -1, -1, 0, 1, "자의식"), S(1, -2, -1, 1, 1, "우울"), S(0, -1, -1, 0, 2, "불안")],
+  argo: [S(1, -1, 0, 0, 0), S(1, 1, -1, 1, 1, "불안"), S(0, -1, -1, 0, 1, "취약성")], // 완벽 추구·유예형 더미 3편 (실제 채점값)
 };
 for (const [want, scores] of Object.entries(cases)) {
   const top = match(scores).slice(0, 3);
