@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import CharCount from "@/components/CharCount";
 import NightSky from "@/components/NightSky";
-import { addEntry, findByDay, getServerSnapshot, getSnapshot, isLocked, latestFreeDay, MIN_LENGTH, shiftDay, subscribe, today, updateEntry, type Entry } from "@/lib/store";
+import { addEntry, currentMonth, findByDay, getServerSnapshot, getSnapshot, getViewMonthServerSnapshot, getViewMonthSnapshot, isLocked, latestFreeDay, MIN_LENGTH, shiftDay, subscribe, today, updateEntry, type Entry } from "@/lib/store";
 
 export default function Write() {
   const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   // 기본 날짜 = 일기가 없는 가장 최근 날. 저장소가 로드되면 key가 바뀌어 다시 초기화됨
-  const defaultDay = latestFreeDay(entries);
+  // 하늘에서 보고 있던 달 안에서 일기가 없는 가장 최근 날
+  const viewMonth = useSyncExternalStore(subscribe, getViewMonthSnapshot, getViewMonthServerSnapshot) || currentMonth();
+  const defaultDay = latestFreeDay(entries, viewMonth);
   return <DayPicker key={defaultDay} defaultDay={defaultDay} entries={entries} />;
 }
 
@@ -21,7 +23,7 @@ function DayPicker({ defaultDay, entries }: { defaultDay: string; entries: Entry
   return <Editor key={`${day}:${existing?.id ?? "new"}`} day={day} setDay={setDay} existing={existing} />;
 }
 
-const arrow = "rounded-full px-2 text-muted transition hover:text-starlight disabled:opacity-30 disabled:hover:text-muted";
+const arrow = "rounded-full px-2 text-muted transition hover:text-starlight disabled:opacity-30 disabled:hover:text-muted text-[19px]";
 
 function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) => void; existing?: Entry }) {
   const router = useRouter();
@@ -54,7 +56,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
           />
           <button onClick={() => setDay(shiftDay(day, 1))} disabled={day === today()} className={arrow} aria-label="하루 뒤">›</button>
           {day !== today() && (
-            <button onClick={() => setDay(today())} className="rounded-full border border-muted/40 px-3 py-1 text-sm hover:border-starlight hover:text-starlight">
+            <button onClick={() => setDay(today())} className="rounded-full border border-muted/40 px-3 py-1 text-[17px] hover:border-starlight hover:text-starlight">
               오늘
             </button>
           )}
@@ -75,7 +77,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
           />
         )}
         <div className="flex items-center justify-between">
-          <Link href="/sky" className="text-muted hover:text-starlight">
+          <Link href="/sky" className="text-muted hover:text-starlight text-[19px] text-[19px]">
             돌아가기
           </Link>
           {!locked && (
@@ -84,7 +86,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
               <button
                 onClick={save}
                 disabled={!ready}
-                className="rounded-full border border-gold/60 px-8 py-3 text-gold transition enabled:hover:bg-gold/10 disabled:border-muted/30 disabled:text-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+                className="rounded-full border border-gold/60 px-8 py-3 text-gold transition enabled:hover:bg-gold/10 disabled:border-muted/30 disabled:text-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold text-[19px] text-[19px]"
               >
                 {existing ? "다시 저장" : "별 찍기"}
               </button>

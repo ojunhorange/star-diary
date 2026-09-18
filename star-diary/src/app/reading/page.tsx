@@ -6,14 +6,18 @@ import ConstellationPreview from "@/components/ConstellationPreview";
 import NightSky from "@/components/NightSky";
 import { byId } from "@/lib/constellations";
 import type { Narrative, Retro } from "@/lib/narrative";
-import { addChapter, formatDate, isSunday, lastAction, repairIfBroken, RETRO_MAX, RETRO_STEP, retroPool, getChosenServerSnapshot, getChosenSnapshot, getReadingServerSnapshot, getReadingSnapshot, getServerSnapshot, getSnapshot, subscribe, type Chapter } from "@/lib/store";
+import { addChapter, currentMonth, formatDate, isSunday, lastAction, monthEntries, monthLabel, repairIfBroken, RETRO_MAX, RETRO_STEP, retroPool, getChosenServerSnapshot, getChosenSnapshot, getReadingServerSnapshot, getReadingSnapshot, getServerSnapshot, getSnapshot, getViewMonthServerSnapshot, getViewMonthSnapshot, subscribe, type Chapter } from "@/lib/store";
 
-const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
+const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold text-[19px]";
 
 export default function Reading() {
-  const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const chosen = useSyncExternalStore(subscribe, getChosenSnapshot, getChosenServerSnapshot);
-  const reading = useSyncExternalStore(subscribe, getReadingSnapshot, getReadingServerSnapshot);
+  const all = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const chosenMap = useSyncExternalStore(subscribe, getChosenSnapshot, getChosenServerSnapshot);
+  const readingMap = useSyncExternalStore(subscribe, getReadingSnapshot, getReadingServerSnapshot);
+  const month = useSyncExternalStore(subscribe, getViewMonthSnapshot, getViewMonthServerSnapshot) || currentMonth();
+  const entries = monthEntries(all, month);
+  const chosen = chosenMap[month] ?? null;
+  const reading = readingMap[month] ?? null;
   const c = chosen ? byId(chosen.id) : undefined;
   const chapters = reading?.chapters ?? [];
   const [current, setCurrent] = useState<number | null>(null); // null = 최근 장
@@ -22,8 +26,8 @@ export default function Reading() {
   const [wantOrigin, setWantOrigin] = useState(true); // 1장은 진입 즉시 생성. 답(회고)은 버튼으로
 
   useEffect(() => {
-    repairIfBroken(entries, chosen);
-  }, [entries, chosen]);
+    repairIfBroken();
+  }, [all]);
 
   // 1장: 버튼을 누르면 한 번만 생성. 생성된 이야기는 저장되어 고정됨
   useEffect(() => {
@@ -42,13 +46,13 @@ export default function Reading() {
       .then(async (r) => {
         if (!r.ok) throw new Error((await r.json()).error ?? r.statusText);
         const { narrative } = await r.json();
-        addChapter({ kind: "origin", createdAt: new Date().toISOString(), narrative });
+        addChapter(month, { kind: "origin", createdAt: new Date().toISOString(), narrative });
       })
       .catch((e) => {
         setError(e.message);
         requested.current = false;
       });
-  }, [wantOrigin, chosen, c, chapters.length, entries, error]);
+  }, [wantOrigin, chosen, c, chapters.length, entries, error, month]);
 
   // 회고: 1장이 있고, 아직 안 쓰인 채점 일기 3편 이상, 일요일(부터)이면 한 번 생성
   const pool = retroPool(entries, chosen, reading);
@@ -74,7 +78,7 @@ export default function Reading() {
       .then(async (r) => {
         if (!r.ok) throw new Error((await r.json()).error ?? r.statusText);
         const { narrative } = await r.json();
-        addChapter({ kind: "retro", createdAt: new Date().toISOString(), entryIds: target.map((e) => e.id), narrative });
+        addChapter(month, { kind: "retro", createdAt: new Date().toISOString(), entryIds: target.map((e) => e.id), narrative });
         setCurrent(null); // 최근 장으로
         setWantRetro(false);
         retroRequested.current = false;
@@ -83,13 +87,13 @@ export default function Reading() {
         setError(e.message);
         retroRequested.current = false;
       });
-  }, [wantRetro, chosen, c, retroReady, pool, entries, reading, error]);
+  }, [wantRetro, chosen, c, retroReady, pool, entries, reading, error, month]);
 
   if (!chosen || !c) {
     return (
       <Shell>
         <p className="text-muted">
-          아직 별자리가 없어요. <Link href="/sky" className="underline">하늘로 돌아가기</Link>
+          아직 별자리가 없어요. <Link href="/sky" className="underline text-[19px] text-[19px]">하늘로 돌아가기</Link>
         </p>
       </Shell>
     );
@@ -107,14 +111,14 @@ export default function Reading() {
         {/* 좌측 고정 패널 */}
         <aside className="md:sticky md:top-12 md:self-start">
           <div className="flex items-center gap-4 text-sm">
-            <Link href="/sky" className="text-muted hover:text-starlight">← 하늘로</Link>
-            <Link href="/constellations" className="text-muted hover:text-starlight">열 개의 하늘</Link>
+            <Link href="/sky" className="text-muted hover:text-starlight text-[19px] text-[19px]">← 하늘로</Link>
+            <Link href="/constellations" className="text-muted hover:text-starlight text-[19px] text-[19px]">열 개의 별자리</Link>
           </div>
           <ConstellationPreview c={c} filled={Math.min(entries.length, c.stars.length)} className="mt-6 w-full max-w-xs" />
           <h1 className="mt-4 font-serif text-2xl">{c.name}</h1>
           <p className="text-gold">{c.persona}</p>
           <p className="mt-1 text-sm text-muted">{c.philosopher} · {c.concept}</p>
-          <p className="mt-1 text-sm text-muted">{formatDate(chosen.chosenAt)}에 완성된 하늘</p>
+          <p className="mt-1 text-sm text-muted">{monthLabel(month)}의 하늘 · {formatDate(chosen.chosenAt)} 완성</p>
 
           <nav className="mt-8">
             <p className="text-sm text-muted">이야기</p>
@@ -123,7 +127,7 @@ export default function Reading() {
                 <li key={i}>
                   <button
                     onClick={() => setCurrent(i)}
-                    className={`flex items-center gap-3 text-left transition ${i === idx ? "text-starlight" : "text-muted hover:text-starlight"}`}
+                    className={`flex items-center gap-3 text-left transition ${i === idx ? "text-starlight" : "text-muted hover:text-starlight"} text-[19px]`}
                   >
                     <span className={`inline-block h-2 w-2 rounded-full ${i === idx ? "bg-gold" : "bg-gold/50"}`} />
                     {chapterTitle(ch, chapters.slice(0, i + 1).filter((x) => x.kind === "retro").length)}
@@ -140,7 +144,7 @@ export default function Reading() {
                 onClick={() => setWantRetro(true)}
                 disabled={!isSunday()}
                 title={isSunday() ? undefined : "일요일에 열려요"}
-                className="mt-4 rounded-full border border-gold/60 px-6 py-2 text-gold transition enabled:hover:bg-gold/10 disabled:border-muted/30 disabled:text-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+                className="mt-4 rounded-full border border-gold/60 px-6 py-2 text-gold transition enabled:hover:bg-gold/10 disabled:border-muted/30 disabled:text-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold text-[19px]"
               >
                 하늘의 답 열기
               </button>
@@ -161,7 +165,7 @@ export default function Reading() {
             <p className="text-muted">
               지금은 하늘이 흐려요. <span className="text-sm">({error})</span>
               <br />
-              <button onClick={() => { setError(null); setWantOrigin(true); }} className="mt-4 underline hover:text-starlight">다시 열기</button>
+              <button onClick={() => { setError(null); setWantOrigin(true); }} className="mt-4 underline hover:text-starlight text-[19px]">다시 열기</button>
             </p>
           ) : (
             <p className="text-muted">

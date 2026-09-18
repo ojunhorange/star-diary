@@ -6,8 +6,8 @@ import NightSky from "@/components/NightSky";
 import { ONBOARDING } from "@/data/onboarding-content";
 import { markOnboarded } from "@/lib/store";
 
-const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
-const btnQuiet = "rounded-full border border-starlight/25 px-8 py-3 text-starlight/80 transition hover:border-starlight/60 hover:text-starlight";
+const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold text-[19px]";
+const btnQuiet = "rounded-full border border-starlight/25 px-8 py-3 text-starlight/80 transition hover:border-starlight/60 hover:text-starlight text-[19px]";
 
 // 장마다 별이 하나 → 둘 → 셋(선으로 이어짐)으로 자람 — 앱의 구조를 미리 보여줌
 const STARS = [
@@ -32,7 +32,7 @@ export default function Welcome() {
         <NightSky />
       </div>
 
-      <button onClick={finish} className="absolute right-10 top-8 text-sm text-muted transition hover:text-starlight">
+      <button onClick={finish} className="absolute right-10 top-8 text-[17px] text-muted transition hover:text-starlight text-[19px]">
         건너뛰기
       </button>
 

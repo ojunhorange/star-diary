@@ -5,7 +5,7 @@ import CharCount from "@/components/CharCount";
 import { formatDate, isLocked, MIN_LENGTH, removeEntry, updateEntry, type Entry } from "@/lib/store";
 
 const btn =
-  "rounded-full px-5 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
+  "rounded-full px-5 py-2 text-[17px] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
 
 export default function EntryModal({ entry, onClose }: { entry: Entry; onClose: () => void }) {
   const [mode, setMode] = useState<"view" | "edit" | "delete">("view");

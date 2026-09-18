@@ -1,4 +1,4 @@
-import { addEntry, setScore, shiftDay, today, type Entry } from "@/lib/store";
+import { addEntry, chooseConstellation, currentMonth, lastDayOf, monthOf, setScore, setViewMonth, shiftDay, shiftMonth, today, type Entry } from "@/lib/store";
 
 // 마켓·시연용 예시 일기 6편 (완벽 추구·유예형 → 아르고자리). 앞 3편 = 별자리, 뒤 3편 = 첫 번째 답(회고). 채점값을 함께 넣어 API 호출 없이 별자리 선택까지 감
 const DEMO: { daysAgo: number; text: string; score: Entry["score"] }[] = [
@@ -35,10 +35,47 @@ const DEMO: { daysAgo: number; text: string; score: Entry["score"] }[] = [
   },
 ];
 
+// 아카이브용: 지난 두 달 (별자리 확정 상태). 각각 갓생 번아웃형 → 헤라클레스, 연결 불안형 → 쌍둥이
+const PAST: { monthsAgo: number; constellation: string; entries: { day: number; text: string; score: Entry["score"] }[] }[] = [
+  {
+    monthsAgo: 2,
+    constellation: "hercules",
+    entries: [
+      { day: 3, text: "아침 러닝, 오전 인턴 지원서 두 개, 오후 스터디, 저녁 알바. 잠은 다섯 시간. 일정표가 꽉 차 있으면 마음이 놓인다.", score: { O: 0, C: 2, E: 1, A: 0, N: 1, nFacet: "취약성", emotions: ["뿌듯함", "피로"], keywords: ["일정표가 꽉 차 있으면", "잠은 다섯 시간", "마음이 놓인다"] } },
+      { day: 9, text: "팀플에서 자료조사 내가 다 했다. 다들 바쁘다길래. 집에 오니 아무것도 하기 싫어서 유튜브만 봤다. 열심히 살았는데 왜 허무하지.", score: { O: 0, C: 1, E: 0, A: 2, N: 2, nFacet: "취약성", emotions: ["허무", "지침"], keywords: ["내가 다 했다", "아무것도 하기 싫어서", "열심히 살았는데 왜 허무하지"] } },
+      { day: 15, text: "동아리 회장이 행사 준비 도와달라고 해서 또 맡았다. 거절을 못 하겠다. 내 과제는 밀렸다. 몸이 무겁다.", score: { O: 0, C: 1, E: 0, A: 2, N: 2, nFacet: "취약성", emotions: ["지침", "미안함"], keywords: ["또 맡았다", "거절을 못 하겠다", "내 과제는 밀렸다"] } },
+    ],
+  },
+  {
+    monthsAgo: 1,
+    constellation: "gemini",
+    entries: [
+      { day: 4, text: "개강 첫 주. 다들 이미 친한 것 같은데 나만 겉도는 느낌. 단톡방에서 말 걸 타이밍을 못 잡았다.", score: { O: 0, C: 0, E: 1, A: 1, N: 1, nFacet: "자의식", emotions: ["소외감", "긴장"], keywords: ["나만 겉도는 느낌", "말 걸 타이밍을 못 잡았다"] } },
+      { day: 11, text: "동아리 지원서 넣었다. 사람들이랑 어울려야 뭐라도 될 것 같아서. 근데 인스타 보니 다들 벌써 모임 사진이 올라온다.", score: { O: 1, C: 0, E: 1, A: 1, N: 1, nFacet: "자의식", emotions: ["조급함", "기대"], keywords: ["어울려야 뭐라도 될 것 같아서", "다들 벌써 모임 사진"] } },
+      { day: 18, text: "MT에서 옆자리 애랑 세 시간 얘기했다. 많은 사람은 아니어도 한 명이랑 깊게 얘기하니까 이상하게 안심됐다.", score: { O: 0, C: 0, E: 2, A: 2, N: -1, nFacet: null, emotions: ["안심", "즐거움"], keywords: ["세 시간 얘기했다", "한 명이랑 깊게", "이상하게 안심됐다"] } },
+    ],
+  },
+];
+
 export function loadDemo() {
-  for (const d of DEMO) {
-    const e = addEntry(d.text, shiftDay(today(), -d.daysAgo));
+  // 예시 6편이 한 달 안에 들어가도록: 오늘이 13일 이후면 이번 달(12일 전~오늘), 6~12일이면 간격을 좁혀 이번 달, 그 전이면 지난달 말을 기준으로
+  const dom = Number(today().slice(8));
+  const base = dom >= 6 ? today() : lastDayOf(shiftMonth(currentMonth(), -1));
+  const demoMonth = base.slice(0, 7);
+  const gaps = dom >= 13 || dom < 6 ? [12, 9, 6, 4, 2, 0] : [5, 4, 3, 2, 1, 0];
+  DEMO.forEach((d, i) => {
+    const e = addEntry(d.text, shiftDay(base, -gaps[i]));
     setScore(e.id, d.score!);
+  });
+  if (demoMonth !== currentMonth()) setViewMonth(demoMonth);
+  for (const p of PAST) {
+    const m = shiftMonth(demoMonth, -p.monthsAgo);
+    const ids = p.entries.map((d) => {
+      const e = addEntry(d.text, `${m}-${String(d.day).padStart(2, "0")}`);
+      setScore(e.id, d.score!);
+      return e.id;
+    });
+    chooseConstellation(monthOf(`${m}-01T12:00:00`), p.constellation, [p.constellation], ids);
   }
   localStorage.setItem("star-diary:debug-sunday", "1"); // 예시 모드에선 일요일 조건 통과 → 회고까지 바로 체험
 }

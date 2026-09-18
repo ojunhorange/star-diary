@@ -6,14 +6,17 @@ import { useSyncExternalStore } from "react";
 import ConstellationPreview from "@/components/ConstellationPreview";
 import NightSky from "@/components/NightSky";
 import { candidates } from "@/lib/match";
-import { chooseConstellation, coreEntries, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, subscribe } from "@/lib/store";
+import { chooseConstellation, coreEntries, currentMonth, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, getViewMonthServerSnapshot, getViewMonthSnapshot, monthEntries, subscribe } from "@/lib/store";
 
-const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
+const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold text-[19px]";
 
 export default function Choose() {
   const router = useRouter();
-  const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const chosen = useSyncExternalStore(subscribe, getChosenSnapshot, getChosenServerSnapshot);
+  const all = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const chosenMap = useSyncExternalStore(subscribe, getChosenSnapshot, getChosenServerSnapshot);
+  const month = useSyncExternalStore(subscribe, getViewMonthSnapshot, getViewMonthServerSnapshot) || currentMonth();
+  const entries = monthEntries(all, month);
+  const chosen = chosenMap[month] ?? null;
   const core = coreEntries(entries);
 
   if (chosen || core.length < 3) {
@@ -21,7 +24,7 @@ export default function Choose() {
       <main className="relative flex min-h-screen items-center justify-center">
         <NightSky />
         <p className="relative text-muted">
-          {chosen ? "별자리는 이미 정해졌어요." : "아직 별이 부족해요."} <Link href="/sky" className="underline">돌아가기</Link>
+          {chosen ? "별자리는 이미 정해졌어요." : "아직 별이 부족해요."} <Link href="/sky" className="underline text-[19px] text-[19px]">돌아가기</Link>
         </p>
       </main>
     );
@@ -33,7 +36,7 @@ export default function Choose() {
   const quotes = [...new Set(core.flatMap((e) => e.score!.keywords))].slice(0, 5);
 
   function pick(id: string) {
-    chooseConstellation(id, cands.map((c) => c.constellation.id), core.map((e) => e.id));
+    chooseConstellation(month, id, cands.map((c) => c.constellation.id), core.map((e) => e.id));
     router.push("/sky");
   }
 
