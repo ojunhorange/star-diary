@@ -6,8 +6,9 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import EntryModal from "@/components/EntryModal";
 import NightSky, { type Line, type Point, type Star } from "@/components/NightSky";
 import { byId, CORE_STARS, fittedStars } from "@/lib/constellations";
+import { loadDemo } from "@/lib/demo";
 import { requestScore } from "@/lib/score-client";
-import { coreEntries, findToday, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, isOnboarded, placeStars, repairIfBroken, subscribe } from "@/lib/store";
+import { coreEntries, findToday, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, isOnboarded, placeStars, repairIfBroken, resetAll, subscribe } from "@/lib/store";
 
 const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
 const btnQuiet = "rounded-full px-6 py-3 text-muted transition hover:text-starlight";
@@ -17,6 +18,7 @@ export default function Home() {
   const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const chosen = useSyncExternalStore(subscribe, getChosenSnapshot, getChosenServerSnapshot);
   const [open, setOpen] = useState<{ i: number; at: Point } | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   // 첫 방문이면 온보딩으로
   useEffect(() => {
@@ -93,7 +95,26 @@ export default function Home() {
             <Link href="/reading" className={btn}>별자리 읽기</Link>
           )}
         </div>
+        {entries.length === 0 && (
+          <button onClick={loadDemo} className="text-sm text-muted underline-offset-4 transition hover:text-starlight hover:underline">
+            일기 없이 예시로 체험하기
+          </button>
+        )}
       </section>
+
+      {entries.length > 0 && (
+        <footer className="absolute bottom-6 left-10 text-sm text-muted">
+          {confirmReset ? (
+            <span>
+              모든 별을 지울까요?{" "}
+              <button onClick={() => { resetAll(); setConfirmReset(false); }} className="ml-2 text-starlight underline">지우기</button>
+              <button onClick={() => setConfirmReset(false)} className="ml-3 hover:text-starlight">취소</button>
+            </span>
+          ) : (
+            <button onClick={() => setConfirmReset(true)} className="transition hover:text-starlight">처음부터</button>
+          )}
+        </footer>
+      )}
 
       {open && entry && <EntryModal entry={entry} onClose={() => setOpen(null)} />}
     </main>

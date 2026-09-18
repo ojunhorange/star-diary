@@ -108,10 +108,25 @@ export function chooseConstellation(id: string, candidates: string[], entryIds: 
 }
 
 // 핵심 3편 중 하나라도 사라졌으면(개발자도구 등) 별자리를 해제하고 잠금을 풂 — 반쪽 상태 방지
+// 전부 지우기 (시연 후 초기화). 온보딩 완료 표시는 유지
+export function resetAll() {
+  localStorage.removeItem(KEY);
+  localStorage.removeItem(CKEY);
+  localStorage.removeItem(RKEY);
+  window.dispatchEvent(new Event(CHANGE));
+}
+
 export function repairIfBroken(entries: Entry[], chosen: Chosen | null) {
+  // 옛 구조의 이야기(place 섹션 없음)는 버리고 다시 생성
+  const r = loadReading();
+  if (r && r.chapters.some((ch) => !ch.narrative || typeof ch.narrative.place !== "string")) {
+    localStorage.removeItem(RKEY);
+    window.dispatchEvent(new Event(CHANGE));
+  }
   if (!chosen) return;
   const ids = new Set(entries.map((e) => e.id));
-  if (chosen.entryIds.every((id) => ids.has(id))) return;
+  // 핵심 3편이 사라졌거나, 별자리가 더 이상 존재하지 않으면(삭제된 id) 해제
+  if (byId(chosen.id) && chosen.entryIds.every((id) => ids.has(id))) return;
   localStorage.removeItem(CKEY);
   localStorage.removeItem(RKEY);
   save(entries.map((e) => ({ ...e, constellationId: undefined })));

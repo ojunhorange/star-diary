@@ -1,0 +1,27 @@
+import { addEntry, setScore, shiftDay, today, type Entry } from "@/lib/store";
+
+// 마켓·시연용 예시 일기 3편 (완벽 추구·유예형 → 아르고자리). 채점값을 함께 넣어 API 호출 없이 바로 별자리 선택까지 감
+const DEMO: { daysAgo: number; text: string; score: Entry["score"] }[] = [
+  {
+    daysAgo: 6,
+    text: "포트폴리오 사이트 만들려고 노션에 기획서 3페이지 썼다. 색 조합표까지 정했는데 막상 코드는 한 줄도 안 쳤다. 아직 디자인 레퍼런스를 더 봐야 할 것 같아서. 유튜브로 튜토리얼 두 개 저장해놓고 잤다.",
+    score: { O: 1, C: -1, E: 0, A: 0, N: 0, nFacet: null, emotions: ["답답함", "기대감"], keywords: ["기획서 3페이지", "코드는 한 줄도 안 쳤다", "더 봐야 할 것 같아서", "저장해놓고"] },
+  },
+  {
+    daysAgo: 3,
+    text: "동아리 프로젝트 역할 정하는 날. 프론트 맡겠다고 하려다가 아직 리액트를 제대로 공부 안 했으니까 다음 기회에 하기로 했다. 대신 자료조사 맡음. 집에 와서 리액트 강의 커리큘럼만 3시간 비교했다. 어떤 게 제일 완벽한 커리큘럼인지 아직 모르겠다.",
+    score: { O: 1, C: 1, E: -1, A: 1, N: 1, nFacet: "불안", emotions: ["고민", "조바심"], keywords: ["아직 리액트를 제대로", "다음 기회에", "3시간 비교했다", "제일 완벽한 커리큘럼"] },
+  },
+  {
+    daysAgo: 0,
+    text: "친구가 같이 공모전 나가자고 했다. 하고 싶은데 지금 실력으로 나가면 어차피 떨어질 것 같아서 내년에 준비 제대로 해서 나가자고 했다. 친구는 그냥 나가보자는데. 밤에 기획서 파일 열어봤다가 또 닫았다. 계획은 다 있는데 왜 손이 안 움직이지.",
+    score: { O: 0, C: -1, E: -1, A: 0, N: 1, nFacet: "취약성", emotions: ["불안", "답답함"], keywords: ["어차피 떨어질 것 같아서", "내년에 준비 제대로", "기획서 파일 열어봤다가 또 닫았다", "손이 안 움직이지"] },
+  },
+];
+
+export function loadDemo() {
+  for (const d of DEMO) {
+    const e = addEntry(d.text, shiftDay(today(), -d.daysAgo));
+    setScore(e.id, d.score!);
+  }
+}

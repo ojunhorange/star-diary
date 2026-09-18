@@ -6,7 +6,7 @@ import ConstellationPreview from "@/components/ConstellationPreview";
 import NightSky from "@/components/NightSky";
 import { byId } from "@/lib/constellations";
 import type { Narrative } from "@/lib/narrative";
-import { addChapter, formatDate, getChosenServerSnapshot, getChosenSnapshot, getReadingServerSnapshot, getReadingSnapshot, getServerSnapshot, getSnapshot, subscribe, type Chapter } from "@/lib/store";
+import { addChapter, formatDate, repairIfBroken, getChosenServerSnapshot, getChosenSnapshot, getReadingServerSnapshot, getReadingSnapshot, getServerSnapshot, getSnapshot, subscribe, type Chapter } from "@/lib/store";
 
 export default function Reading() {
   const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -17,6 +17,10 @@ export default function Reading() {
   const [current, setCurrent] = useState<number | null>(null); // null = 최근 장
   const [error, setError] = useState<string | null>(null);
   const requested = useRef(false);
+
+  useEffect(() => {
+    repairIfBroken(entries, chosen);
+  }, [entries, chosen]);
 
   // 1장이 없으면 한 번만 생성 요청. 생성된 이야기는 저장되어 고정됨
   useEffect(() => {
