@@ -3,7 +3,8 @@ import type { Score } from "./scoring.ts";
 
 const TRAITS: Trait[] = ["O", "C", "E", "A", "N"];
 const TRAIT_LABEL: Record<Trait, string> = { O: "개방성", C: "성실성", E: "외향성", A: "우호성", N: "신경성" };
-const FACET_BONUS = 0.8; // N 세부 요인 일치 시 거리 차감 — 숫자만으론 가까운 쌍(거문고↔안드로메다 등)을 가르는 핵심
+const FACET_BONUS = 0.8;
+export const CLOSE_GAP = 0.5; // 1·2위 거리 차이가 이 이하일 때만 두 후보를 제시 (아니면 1위만) // N 세부 요인 일치 시 거리 차감 — 숫자만으론 가까운 쌍(거문고↔안드로메다 등)을 가르는 핵심
 
 export type Candidate = {
   constellation: Constellation;
@@ -42,4 +43,10 @@ function mode(xs: string[]) {
   const n = new Map<string, number>();
   xs.forEach((x) => n.set(x, (n.get(x) ?? 0) + 1));
   return [...n.entries()].sort((a, b) => b[1] - a[1])[0][0];
+}
+
+// 사용자에게 보여줄 후보: 확실하면 1개, 가까우면 2개
+export function candidates(scores: Score[]): Candidate[] {
+  const [a, b] = match(scores);
+  return b && b.distance - a.distance <= CLOSE_GAP ? [a, b] : [a];
 }
