@@ -48,6 +48,15 @@ const slides = [1, 2, 3].map((n) => {
 });
 const cta = line(ob, "버튼") ?? errors.push("onboarding.md: '버튼:' 줄 없음");
 
+// ---- 랜딩 ----
+const ld = read("content/landing.md");
+const landing = {
+  title: line(ld, "제목") ?? errors.push("landing.md: '제목:' 줄 없음"),
+  tagline: line(ld, "한 줄") ?? errors.push("landing.md: '한 줄:' 줄 없음"),
+  primary: line(ld, "버튼2") ?? errors.push("landing.md: '버튼2:' 줄 없음"),
+  secondary: line(ld, "버튼1") ?? errors.push("landing.md: '버튼1:' 줄 없음"),
+};
+
 if (errors.length) {
   console.error("content 형식 오류:\n" + errors.map((e) => "  - " + e).join("\n"));
   process.exit(1);
@@ -56,5 +65,7 @@ if (errors.length) {
 fs.mkdirSync("src/data", { recursive: true });
 const header = (src) => `// 자동 생성 — 직접 수정 금지. 원본: ${src}, 생성: npm run content\n`;
 fs.writeFileSync("src/data/constellations-content.ts", header("content/constellations/*.md") + `export const CONTENT = ${JSON.stringify(content, null, 2)} as const;\n`);
+fs.writeFileSync("src/data/landing-content.ts", header("content/landing.md") + `export const LANDING = ${JSON.stringify(landing, null, 2)} as const;
+`);
 fs.writeFileSync("src/data/onboarding-content.ts", header("content/onboarding.md") + `export const ONBOARDING = ${JSON.stringify({ slides, cta }, null, 2)} as const;\n`);
-console.log(`content 반영: 별자리 ${Object.keys(content).length}개, 온보딩 ${slides.length}장`);
+console.log(`content 반영: 별자리 ${Object.keys(content).length}개, 온보딩 ${slides.length}장, 랜딩`);

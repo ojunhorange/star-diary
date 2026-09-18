@@ -7,6 +7,7 @@ import { ONBOARDING } from "@/data/onboarding-content";
 import { markOnboarded } from "@/lib/store";
 
 const btn = "rounded-full border border-gold/60 px-8 py-3 text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
+const btnQuiet = "rounded-full border border-starlight/25 px-8 py-3 text-starlight/80 transition hover:border-starlight/60 hover:text-starlight";
 
 // 장마다 별이 하나 → 둘 → 셋(선으로 이어짐)으로 자람 — 앱의 구조를 미리 보여줌
 const STARS = [
@@ -22,7 +23,7 @@ export default function Welcome() {
 
   function finish() {
     markOnboarded();
-    router.replace("/write");
+    router.replace("/sky");
   }
 
   return (
@@ -35,7 +36,7 @@ export default function Welcome() {
         건너뛰기
       </button>
 
-      <section className="relative mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center justify-center gap-10 px-6 text-center">
+      <section className="relative mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center justify-center gap-8 px-6 py-16 text-center">
         <svg viewBox="30 25 40 40" className="h-28 w-28" aria-hidden>
           {i === 2 && (
             <>
@@ -52,23 +53,26 @@ export default function Welcome() {
           ))}
         </svg>
 
-        <div key={i} className="fade-in flex flex-col gap-6 font-serif text-lg leading-loose">
+        <div key={i} className="fade-in flex min-h-[16rem] flex-col justify-center gap-6 font-serif text-lg leading-loose">
           {ONBOARDING.slides[i].map((p, k) => (
             <p key={k} className="whitespace-pre-line">{p}</p>
           ))}
         </div>
 
-        <div className="mt-4 flex items-center gap-6">
+        <div className="mt-4 flex flex-col items-center gap-6">
           <span className="flex gap-2" aria-label={`${i + 1} / ${ONBOARDING.slides.length}`}>
             {ONBOARDING.slides.map((_, k) => (
               <span key={k} className={`h-1.5 w-1.5 rounded-full ${k === i ? "bg-gold" : "bg-starlight/25"}`} />
             ))}
           </span>
-          {last ? (
-            <button onClick={finish} className={btn}>{ONBOARDING.cta}</button>
-          ) : (
-            <button onClick={() => setI(i + 1)} className={btn}>다음</button>
-          )}
+          <div className="flex items-center gap-4">
+            {i > 0 && <button onClick={() => setI(i - 1)} className={btnQuiet}>이전</button>}
+            {last ? (
+              <button onClick={finish} className={btn}>{ONBOARDING.cta}</button>
+            ) : (
+              <button onClick={() => setI(i + 1)} className={btn}>다음</button>
+            )}
+          </div>
         </div>
       </section>
     </main>

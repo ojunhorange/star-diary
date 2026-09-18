@@ -75,8 +75,8 @@ export function addEntry(text: string, day = today()): Entry {
     id: crypto.randomUUID(),
     createdAt: new Date(`${day}T12:00:00`).toISOString(), // 정오로 고정해 시간대 경계에서 날짜가 밀리지 않게
     text,
-    // 하늘 중앙 영역에 무작위 배치. 별자리 완성 시(4단계) 정해진 형태로 이동
-    star: { x: 25 + Math.random() * 50, y: 18 + Math.random() * 40 },
+    // 하늘 중앙 영역(별자리 배치 영역과 동일)에 무작위 배치. 별자리 확정 시 정해진 형태로 이동
+    star: { x: 30 + Math.random() * 40, y: 38 + Math.random() * 24 },
   };
   save([...loadEntries(), entry]);
   return entry;

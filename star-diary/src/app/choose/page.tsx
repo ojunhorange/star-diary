@@ -21,7 +21,7 @@ export default function Choose() {
       <main className="relative flex min-h-screen items-center justify-center">
         <NightSky />
         <p className="relative text-muted">
-          {chosen ? "별자리는 이미 정해졌어요." : "아직 별이 부족해요."} <Link href="/" className="underline">돌아가기</Link>
+          {chosen ? "별자리는 이미 정해졌어요." : "아직 별이 부족해요."} <Link href="/sky" className="underline">돌아가기</Link>
         </p>
       </main>
     );
@@ -34,7 +34,7 @@ export default function Choose() {
 
   function pick(id: string) {
     chooseConstellation(id, cands.map((c) => c.constellation.id), core.map((e) => e.id));
-    router.push("/");
+    router.push("/sky");
   }
 
   return (

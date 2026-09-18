@@ -111,7 +111,7 @@ export const CONSTELLATIONS: Constellation[] = SHAPES.map((s) => ({ ...s, ...CON
 export const byId = (id: string) => CONSTELLATIONS.find((c) => c.id === id);
 
 // 화면 안전 영역(16:9에서 위아래가 잘리고 하단 UI를 피한 곳)에 비율 유지한 채 맞춘 별 좌표
-const SAFE = { x0: 30, x1: 70, y0: 32, y1: 58 };
+const SAFE = { x0: 30, x1: 70, y0: 38, y1: 62 };
 export function fittedStars(c: Constellation): [number, number][] {
   const xs = c.stars.map((s) => s[0]);
   const ys = c.stars.map((s) => s[1]);

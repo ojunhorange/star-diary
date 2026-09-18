@@ -34,7 +34,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
     if (existing) updateEntry(existing.id, text.trim());
     else addEntry(text.trim(), day);
     // 채점은 홈이 "점수 없는 별"을 보고 즉시 요청함(a-1)
-    router.push("/");
+    router.push("/sky");
   }
 
   return (
@@ -75,7 +75,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
           />
         )}
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-muted hover:text-starlight">
+          <Link href="/sky" className="text-muted hover:text-starlight">
             돌아가기
           </Link>
           {!locked && (

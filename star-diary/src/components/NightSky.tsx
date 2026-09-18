@@ -1,3 +1,5 @@
+"use client";
+
 // 배경 별은 고정 시드로 생성 → 서버/클라이언트 렌더가 같아 깜빡임 없음
 function seeded(seed: number) {
   let s = seed;
@@ -11,9 +13,11 @@ const BACKGROUND_STARS = Array.from({ length: 220 }, () => ({
   o: 0.25 + rand() * 0.6,
 }));
 
-export type Star = { x: number; y: number; dim?: boolean }; // dim = 아직 읽는 중
+export type Star = { x: number; y: number; dim?: boolean; label?: string }; // dim = 아직 읽는 중, label = 마우스 올리면 표시
 export type Point = { x: number; y: number }; // 화면 픽셀 좌표
 export type Line = [Star, Star];
+
+import { useState } from "react";
 
 export default function NightSky({
   stars = [],
@@ -28,6 +32,7 @@ export default function NightSky({
   selected?: number | null;
   onStarClick?: (index: number, at: Point) => void;
 }) {
+  const [hover, setHover] = useState<number | null>(null);
   return (
     <svg
       aria-hidden={!onStarClick}
@@ -55,10 +60,17 @@ export default function NightSky({
               const r = e.currentTarget.getBoundingClientRect();
               onStarClick?.(i, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
             }}
+            onMouseEnter={() => setHover(i)}
+            onMouseLeave={() => setHover(null)}
           >
             <circle cx={s.x} cy={s.y} r={3} fill="transparent" />
             <circle cx={s.x} cy={s.y} r={on ? 2.4 : 1.6} fill="var(--gold)" opacity={s.dim ? 0.06 : on ? 0.32 : 0.18} className="transition-all duration-1000" />
             <circle cx={s.x} cy={s.y} r={0.45} fill="var(--gold)" opacity={s.dim ? 0.45 : 1} className="transition-all duration-1000" />
+            {s.label && hover === i && (
+              <text x={s.x} y={s.y - 2.2} textAnchor="middle" fill="var(--starlight)" fontSize={1.4} className="pointer-events-none font-serif">
+                {s.label}
+              </text>
+            )}
           </g>
         );
       })}
