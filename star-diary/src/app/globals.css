@@ -20,6 +20,8 @@
 
 body {
   background: radial-gradient(ellipse 120% 80% at 50% 110%, var(--sky-low), var(--sky) 60%);
+  background-attachment: fixed; /* 스크롤해도 화면 높이마다 반복되지 않게 */
+  background-color: var(--sky);
   color: var(--starlight);
   font-family: var(--font-sans);
   word-break: keep-all;
