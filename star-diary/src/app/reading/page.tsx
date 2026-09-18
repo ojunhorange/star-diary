@@ -74,9 +74,6 @@ export default function Reading() {
           <p className="text-gold">{c.persona}</p>
           <p className="mt-1 text-sm text-muted">{c.philosopher} · {c.concept}</p>
           <p className="mt-1 text-sm text-muted">{formatDate(chosen.chosenAt)}에 완성된 하늘</p>
-          {chosen.candidates[0] !== chosen.id && (
-            <p className="mt-3 text-sm text-muted">기록이 먼저 가리킨 곳은 {byId(chosen.candidates[0])?.name}이었고, 당신은 이 하늘을 골랐어요.</p>
-          )}
 
           <nav className="mt-8">
             <p className="text-sm text-muted">이야기</p>
