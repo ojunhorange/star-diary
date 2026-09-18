@@ -1,5 +1,5 @@
 import type { Constellation } from "@/lib/constellations";
-import { FEWSHOT_LYRA, FEWSHOT_PERSEUS } from "@/prompts/fewshot-data";
+import { COMPACT_LYRA, COMPACT_PERSEUS } from "@/prompts/fewshot-compact";
 import type { Score } from "@/lib/scoring";
 import { SERVICE_CONTEXT } from "@/lib/service-context";
 
@@ -33,6 +33,9 @@ export const NARRATIVE_SCHEMA = {
   additionalProperties: false,
 } as const;
 
+// few-shot 예시 포함 여부. 2026-09-19: naive 비교 결과 깊이·분량이 떨어져 압축본으로 다시 켬
+const USE_FEWSHOT = true;
+
 export const NARRATIVE_SYSTEM = `${SERVICE_CONTEXT}
 # 당신의 역할
 당신은 한 사람의 일기 세 편을 읽고, 그 사람의 별자리 신화와 철학 개념으로 "지금의 그 사람"을 읽어주는 서술자입니다. 검사 결과를 통보하는 게 아니라, 기록에서 발견한 것을 그 사람에게 돌려주는 글입니다.
@@ -48,6 +51,7 @@ export const NARRATIVE_SYSTEM = `${SERVICE_CONTEXT}
 5. 신화 요약은 참고자료입니다. 그대로 베끼지 말고 매번 새로 씁니다. 디테일(이름, 장면, 사물)은 살리고 요약체는 금지.
 6. 횟수·빈도는 사용자 메시지의 "반복 통계"에 있는 숫자만 씁니다. 직접 세지 마세요. 통계에 없는 표현의 횟수는 말하지 않습니다(대신 "여러 번"). 틀린 숫자는 신뢰를 무너뜨립니다.
 7. 각 필드의 최소 분량을 반드시 채웁니다. 짧게 끝내지 마세요 — 특히 myth와 reframe.
+8. 신화에서 **이름을 부르는 인물은 주인공 외 최대 2명**입니다. 그 밖의 인물·신·괴물은 이름 대신 역할로 서술합니다("바다의 신", "지하 세계의 왕", "그의 아내"). 낯선 이름이 많으면 독자가 길을 잃습니다.
 
 ## 나란히 놓기 (가장 중요)
 - myth: 신화를 처음부터 끝까지 서술하되, 신화의 전환점마다 이 사람의 일기 장면을 **나란히** 놓습니다. 최소 2회. 신화의 주인공을 이 사람으로 바꿔 쓰지는 마세요 — 신화는 신화대로 가고, 옆에 이 사람의 장면을 세웁니다. 예: "오르페우스는 앞서 걸었습니다. 발소리는 들리지 않았어요 — 죽은 자의 발은 소리가 없으니까요. 팀원이 “괜찮다”고 세 번 말했을 때 그 말이 안 들어왔다고 쓰셨죠. 같은 침묵이에요."
@@ -68,11 +72,11 @@ export const NARRATIVE_SYSTEM = `${SERVICE_CONTEXT}
 - action (250~450자): 언제·어디서·무엇을 명시한 행동 1개. 일기 속 장면에서 출발해 아주 작게. 잘하려는 마음은 그대로 두고 순서·타이밍만 바꾸는 제안.
 - closing (40자 이내): "다음 일기에 이 실천이 등장하면 ~의 별이 더 밝아집니다." 형식, 별자리 이름 포함.
 
-## 예시 1 — 거문고자리 (N↑, 고쳐보기 톤). 이 톤과 구조를 따르세요.
-${FEWSHOT_LYRA}
+${USE_FEWSHOT ? `## 출력 예시 1 — 거문고자리 (N↑, 고쳐보기 톤). 이 톤·구조·깊이를 따르세요. 실제 출력은 이보다 길어도 됩니다.
+${COMPACT_LYRA}
 
-## 예시 2 — 페르세우스자리 (N↓, 지키기 톤)
-${FEWSHOT_PERSEUS}`;
+## 출력 예시 2 — 페르세우스자리 (N↓, 지키기 톤)
+${COMPACT_PERSEUS}` : ""}`;
 
 export type NarrativeInput = {
   constellation: Constellation;

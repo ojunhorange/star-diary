@@ -41,6 +41,9 @@ export async function POST(req: Request) {
         });
         if (!res.text) throw new Error(`empty response (${res.candidates?.[0]?.finishReason})`);
         const n: Narrative = JSON.parse(res.text);
+        // lite 모델이 제목에 깨진 글자를 섞는 경우가 있어 영문·기호가 들어가면 기본 제목으로
+        if (/[A-Za-z]/.test(n.actionTitle)) n.actionTitle = "이번 주, 이렇게 해보는 건 어떨까요";
+        if (/[A-Za-z]/.test(n.mythTitle)) n.mythTitle = `${constellation.name}의 이야기`;
         const g = grounded(n, keywords, texts);
         if (g.ok) return Response.json({ narrative: n, model, grounded: g });
         console.warn(`[reading] ${model} attempt ${attempt}: grounded myth=${g.inMyth} total=${g.total}, retrying`);
