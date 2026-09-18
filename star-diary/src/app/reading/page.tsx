@@ -126,7 +126,7 @@ export default function Reading() {
         <aside className="md:sticky md:top-12 md:self-start">
           <div className="flex items-center gap-4 text-sm">
             <Link href="/sky" className="text-muted hover:text-starlight text-[19px] text-[19px]">← 하늘로</Link>
-            <Link href="/constellations" className="text-muted hover:text-starlight text-[19px] text-[19px]">열 개의 별자리</Link>
+            <Link href="/constellations" className="text-muted hover:text-starlight text-[19px] text-[19px]">별자리 도감</Link>
           </div>
           <ConstellationPreview c={c} filled={Math.min(entries.length, c.stars.length)} className="mt-6 w-full max-w-xs" />
           <h1 className="mt-4 font-serif text-2xl">{c.name}</h1>

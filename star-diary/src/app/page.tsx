@@ -17,7 +17,7 @@ export default function Landing() {
           <Link href="/sky" className={btn}>{LANDING.primary}</Link>
         </div>
         <Link href="/constellations" className="mt-6 text-[17px] text-muted underline-offset-4 transition hover:text-starlight hover:underline text-[19px]">
-          열 개의 별자리 미리 보기
+          별자리 도감
         </Link>
       </section>
     </main>
