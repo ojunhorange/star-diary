@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { byId } from "@/lib/constellations";
-import { grounded, NARRATIVE_SCHEMA, NARRATIVE_SYSTEM, narrativeUserMessage, type Narrative, type NarrativeInput } from "@/lib/narrative";
+import { grounded, groundedRetro, NARRATIVE_SCHEMA, NARRATIVE_SYSTEM, narrativeUserMessage, RETRO_SCHEMA, RETRO_SYSTEM, retroUserMessage, type Narrative, type NarrativeInput, type Retro, type RetroInput } from "@/lib/narrative";
 
 const MODELS = [process.env.GEMINI_MODEL || "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"];
 
@@ -14,27 +14,41 @@ export async function POST(req: Request) {
     return Response.json({ error: "GEMINI_API_KEY not set" }, { status: 503 });
   }
 
-  const input: NarrativeInput = { constellation, entries: body.entries.slice(0, 3) };
-  const keywords = input.entries.flatMap((e) => e.score.keywords);
-  const texts = input.entries.map((e) => e.text);
+  const retro = body.mode === "retro";
+  const entries = body.entries.slice(0, 3);
+  const keywords = entries.flatMap((e: { score: { keywords: string[] } }) => e.score.keywords);
+  const texts = entries.map((e: { text: string }) => e.text);
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   let lastError = "";
-  let fallback: Narrative | null = null; // 근거 부족이어도 응답은 있었던 경우
+  let fallback: Narrative | Retro | null = null; // 근거 부족이어도 응답은 있었던 경우
+
+  const contents = retro
+    ? retroUserMessage({ constellation, previousAction: body.previousAction ?? "", coreSummary: body.coreSummary ?? "", entries } satisfies RetroInput)
+    : narrativeUserMessage({ constellation, entries } satisfies NarrativeInput);
 
   for (const model of MODELS) {
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const res = await ai.models.generateContent({
           model,
-          contents: narrativeUserMessage(input),
+          contents,
           config: {
-            systemInstruction: NARRATIVE_SYSTEM,
+            systemInstruction: retro ? RETRO_SYSTEM : NARRATIVE_SYSTEM,
             temperature: 0.7, // 서사엔 창의성 필요. 결과는 저장해 고정하므로 매번 달라도 됨
             responseMimeType: "application/json",
-            responseJsonSchema: NARRATIVE_SCHEMA,
+            responseJsonSchema: retro ? RETRO_SCHEMA : NARRATIVE_SCHEMA,
           },
         });
         if (!res.text) throw new Error(`empty response (${res.candidates?.[0]?.finishReason})`);
+        if (retro) {
+          const r: Retro = JSON.parse(res.text);
+          if (/[A-Za-z]/.test(r.nextTitle)) r.nextTitle = "다음 별 세 개, 이렇게 해보는 건 어떨까요";
+          const g = groundedRetro(r, keywords, texts);
+          if (g.ok) return Response.json({ narrative: r, model, grounded: g });
+          console.warn(`[reading/retro] ${model} attempt ${attempt}: grounded ${g.total}, retrying`);
+          fallback = r;
+          continue;
+        }
         const n: Narrative = JSON.parse(res.text);
         // lite 모델이 제목에 깨진 글자를 섞는 경우가 있어 영문·기호가 들어가면 기본 제목으로
         if (/[A-Za-z]/.test(n.actionTitle)) n.actionTitle = "이번 주, 이렇게 해보는 건 어떨까요";
@@ -51,6 +65,6 @@ export async function POST(req: Request) {
       }
     }
   }
-  if (fallback) return Response.json({ narrative: fallback, grounded: grounded(fallback, keywords, texts) });
+  if (fallback) return Response.json({ narrative: fallback });
   return Response.json({ error: lastError || "no narrative" }, { status: 502 });
 }

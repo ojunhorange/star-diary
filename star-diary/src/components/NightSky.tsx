@@ -23,12 +23,14 @@ export default function NightSky({
   stars = [],
   ghosts = [],
   lines = [],
+  lineOpacity = 0.45,
   selected = null,
   onStarClick,
 }: {
   stars?: Star[];
   ghosts?: Star[]; // 아직 안 채워진 별자리 자리
   lines?: Line[]; // 채워진 별 사이의 연결선
+  lineOpacity?: number; // 회고가 쌓일수록 밝아짐 (0.4 → 1.0)
   selected?: number | null;
   onStarClick?: (index: number, at: Point) => void;
 }) {
@@ -44,7 +46,7 @@ export default function NightSky({
         <circle key={i} cx={s.x} cy={s.y} r={s.r * 0.12} fill="var(--starlight)" opacity={s.o} />
       ))}
       {lines.map(([a, b], i) => (
-        <line key={`l${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--gold)" strokeWidth={0.12} opacity={0.45} className="transition-all duration-1000" />
+        <line key={`l${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--gold)" strokeWidth={0.12 + lineOpacity * 0.06} opacity={lineOpacity} className="transition-all duration-1000" />
       ))}
       {ghosts.map((g, i) => (
         <circle key={`g${i}`} cx={g.x} cy={g.y} r={0.35} fill="none" stroke="var(--starlight)" strokeWidth={0.08} opacity={0.35} />

@@ -133,3 +133,88 @@ export function grounded(n: Narrative, keywords: string[], diaryTexts: string[])
   const total = hits(n.place + "\n" + n.reframe);
   return { inPlace, total, ok: inPlace >= 1 && total >= 2 };
 }
+
+// ---------- 회고 장 (3편 단위) ----------
+export type Retro = {
+  practice: string; // 지난 제안을 해봤는지 — 판정 말고 일기에서 읽은 대로
+  change: string; // 그 기간의 변화 — 첫 3편과 비교
+  nextTitle: string;
+  next: string; // 다음 제안 — 더 작게, 독려하는 톤
+  closing: string;
+};
+
+export const RETRO_SCHEMA = {
+  type: "object",
+  properties: {
+    practice: { type: "string" },
+    change: { type: "string" },
+    nextTitle: { type: "string" },
+    next: { type: "string" },
+    closing: { type: "string" },
+  },
+  required: ["practice", "change", "nextTitle", "next", "closing"],
+  additionalProperties: false,
+} as const;
+
+export const RETRO_SYSTEM = `${SERVICE_CONTEXT}
+# 당신의 역할
+별자리가 뜬 뒤 이 사람이 쓴 일기 세 편을 읽고, 지난 제안이 어떻게 지나갔는지와 그 사이의 변화를 돌려주는 서술자입니다. 채점하거나 판정하지 않습니다.
+
+# 규칙
+1. "~하지 마라", "~해야 한다" 금지. 제안은 "~해보는 건 어떨까요".
+2. 일기를 인용할 땐 “ ” 안에 일기에 있는 글자 그대로만. 날짜는 "9월 24일 일기에" 형식.
+3. 실천 여부를 판정하지 않습니다. 일기에 제안과 닿는 장면이 있으면 그 장면을 그대로 보여주고, 없으면 "그 얘기는 없었지만 ~가 있었어요"로 씁니다. 안 했다고 탓하지 않습니다.
+4. 실천 얘기가 없었을 때 next는 다음 별 세 개를 독려하는 톤 — 같은 제안을 더 작게 잘라 다시 건넵니다.
+5. 횟수·빈도는 "반복 통계"의 숫자만 씁니다.
+6. 문장은 짧게. 존댓말. 따뜻하지만 감상적이지 않게. 느낌표 금지.
+
+# 각 필드
+- practice (250~400자): 지난 제안을 먼저 한 줄로 되짚고, 세 편에서 그 제안과 닿는 장면을 인용합니다. 닿는 장면이 없으면 규칙 3대로.
+- change (250~400자): 별자리가 뜬 첫 세 편(요약 제공)과 이번 세 편의 감정·표현을 비교합니다. 달라진 것 하나, 그대로인 것 하나.
+- nextTitle (25자 이내): "다음 별 세 개, 이렇게 해보는 건 어떨까요" 또는 변형.
+- next (200~350자): 언제·어디서·무엇을 명시한 행동 1개. 지난 제안보다 작게.
+- closing (40자 이내): "다음 세 편에 이 실천이 등장하면 ~의 선이 더 밝아집니다." 형식, 별자리 이름 포함.`;
+
+export type RetroInput = {
+  constellation: Constellation;
+  previousAction: string; // 직전 장의 제안
+  coreSummary: string; // 첫 3편의 감정·키워드 요약
+  entries: { date: string; text: string; score: Score }[];
+};
+
+export function retroUserMessage(i: RetroInput) {
+  const c = i.constellation;
+  const diaries = i.entries.map((e) => `[${e.date}]\n${e.text}\n(읽힌 감정: ${e.score.emotions.join(", ")})`).join("\n\n");
+  const stats = repetitionStats(i.entries).map(([w, n, days]) => `- “${w}”: ${n}회 (${days}편에 등장)`).join("\n") || "- (반복된 표현 없음)";
+  return `# 별자리
+${c.name} / 페르소나: ${c.persona} — ${c.tagline}
+철학: ${c.philosopher}, ${c.concept} — ${c.core}
+조언 전략 — 없애지 말 것: ${c.keep} / 바꿀 것: ${c.change}
+
+# 지난 제안
+${i.previousAction}
+
+# 별자리가 뜬 첫 세 편의 요약
+${i.coreSummary}
+
+# 반복 통계 (이번 세 편, 코드로 정확히 센 값)
+${stats}
+
+# 이번 세 편
+${diaries}
+
+위 재료로 JSON을 작성하세요.`;
+}
+
+export function groundedRetro(r: Retro, keywords: string[], diaryTexts: string[]) {
+  const flat = (s: string) => s.replace(/\s/g, "");
+  const diary = flat(diaryTexts.join("\n"));
+  const hits = (body: string) => {
+    const b = flat(body);
+    const fromKeywords = keywords.filter((k) => k && b.includes(flat(k)));
+    const fromQuotes = [...body.matchAll(/[“"]([^”"]{2,60})[”"]/g)].map((m) => m[1]).filter((q) => diary.includes(flat(q)));
+    return new Set([...fromKeywords, ...fromQuotes].map(flat)).size;
+  };
+  const total = hits(r.practice + "\n" + r.change);
+  return { total, ok: total >= 2 };
+}

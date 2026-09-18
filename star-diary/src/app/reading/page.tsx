@@ -5,8 +5,8 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import ConstellationPreview from "@/components/ConstellationPreview";
 import NightSky from "@/components/NightSky";
 import { byId } from "@/lib/constellations";
-import type { Narrative } from "@/lib/narrative";
-import { addChapter, formatDate, repairIfBroken, getChosenServerSnapshot, getChosenSnapshot, getReadingServerSnapshot, getReadingSnapshot, getServerSnapshot, getSnapshot, subscribe, type Chapter } from "@/lib/store";
+import type { Narrative, Retro } from "@/lib/narrative";
+import { addChapter, formatDate, isSunday, lastAction, repairIfBroken, RETRO_STEP, retroPool, getChosenServerSnapshot, getChosenSnapshot, getReadingServerSnapshot, getReadingSnapshot, getServerSnapshot, getSnapshot, subscribe, type Chapter } from "@/lib/store";
 
 export default function Reading() {
   const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -47,6 +47,38 @@ export default function Reading() {
       });
   }, [chosen, c, chapters.length, entries, error]);
 
+  // 회고: 1장이 있고, 아직 안 쓰인 채점 일기 3편 이상, 일요일(부터)이면 한 번 생성
+  const pool = retroPool(entries, chosen, reading);
+  const retroReady = chapters.length > 0 && pool.length >= RETRO_STEP;
+  const retroRequested = useRef(false);
+  useEffect(() => {
+    if (!chosen || !c || !retroReady || retroRequested.current || !isSunday()) return;
+    const target = pool.slice(0, RETRO_STEP);
+    const core = chosen.entryIds.map((id) => entries.find((e) => e.id === id)).filter((e) => e?.score);
+    retroRequested.current = true;
+    fetch("/api/reading", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        mode: "retro",
+        constellationId: chosen.id,
+        previousAction: lastAction(reading),
+        coreSummary: core.map((e) => `${formatDate(e!.createdAt)}: 감정 ${e!.score!.emotions.join("·")} / 표현 ${e!.score!.keywords.join(", ")}`).join("\n"),
+        entries: target.map((e) => ({ date: formatDate(e.createdAt), text: e.text, score: e.score })),
+      }),
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error((await r.json()).error ?? r.statusText);
+        const { narrative } = await r.json();
+        addChapter({ kind: "retro", createdAt: new Date().toISOString(), entryIds: target.map((e) => e.id), narrative });
+        setCurrent(null); // 최근 장으로
+      })
+      .catch((e) => {
+        setError(e.message);
+        retroRequested.current = false;
+      });
+  }, [chosen, c, retroReady, pool, entries, reading, error]);
+
   if (!chosen || !c) {
     return (
       <Shell>
@@ -85,13 +117,13 @@ export default function Reading() {
                     className={`flex items-center gap-3 text-left transition ${i === idx ? "text-starlight" : "text-muted hover:text-starlight"}`}
                   >
                     <span className={`inline-block h-2 w-2 rounded-full ${i === idx ? "bg-gold" : "bg-gold/50"}`} />
-                    {chapterTitle(ch)}
+                    {chapterTitle(ch, chapters.slice(0, i + 1).filter((x) => x.kind === "retro").length)}
                   </button>
                 </li>
               ))}
               <li className="flex items-center gap-3 text-muted/60">
                 <span className="inline-block h-2 w-2 rounded-full border border-starlight/40" />
-                다음 주의 회고 (아직)
+                {pool.length >= RETRO_STEP ? (isSunday() ? "하늘의 답을 읽는 중" : "하늘의 답 · 일요일에 열려요") : `다음 답까지 ${Math.min(pool.length, RETRO_STEP)}/${RETRO_STEP}`}
               </li>
             </ol>
           </nav>
@@ -100,7 +132,7 @@ export default function Reading() {
         {/* 우측 본문 */}
         <article className="max-w-2xl font-serif text-lg leading-loose [overflow-wrap:anywhere] [word-break:normal]">
           {chapter ? (
-            <Origin n={chapter.narrative} />
+            chapter.kind === "origin" ? <Origin n={chapter.narrative} /> : <RetroView r={chapter.narrative} previous={previousActionOf(chapters, idx)} />
           ) : error ? (
             <p className="text-muted">
               지금은 하늘이 흐려요. <span className="text-sm">({error})</span>
@@ -118,9 +150,17 @@ export default function Reading() {
   );
 }
 
-function chapterTitle(ch: Chapter) {
+function chapterTitle(ch: Chapter, n: number) {
   const d = new Date(ch.createdAt);
-  return `별자리가 뜬 날 · ${d.getMonth() + 1}월 ${d.getDate()}일`;
+  const when = `${d.getMonth() + 1}월 ${d.getDate()}일`;
+  return ch.kind === "origin" ? `별자리가 뜬 날 · ${when}` : `${["첫", "두", "세", "네", "다섯", "여섯"][n - 1] ?? n} 번째 답 · ${when}`;
+}
+
+// 이 회고 장 직전 장의 제안 (되짚어 보여주기용)
+function previousActionOf(chapters: Chapter[], idx: number) {
+  const prev = chapters[idx - 1];
+  if (!prev) return "";
+  return prev.kind === "origin" ? prev.narrative.action : prev.narrative.next;
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -165,6 +205,24 @@ function Origin({ n }: { n: Narrative }) {
       <Section title={n.actionTitle}>
         <div className="rounded-xl border border-gold/50 px-6 py-5"><Paragraphs text={n.action} /></div>
         <p className="mt-6 text-sm italic text-muted">{n.closing}</p>
+      </Section>
+    </>
+  );
+}
+
+function RetroView({ r, previous }: { r: Retro; previous: string }) {
+  return (
+    <>
+      {previous && (
+        <Section title="그때의 제안">
+          <div className="rounded-xl border border-starlight/20 px-6 py-5 text-muted"><Paragraphs text={previous} plain /></div>
+        </Section>
+      )}
+      <Section title="세 편 사이에 있었던 것"><Paragraphs text={r.practice} /></Section>
+      <Section title="별자리가 뜬 날과 지금"><Paragraphs text={r.change} /></Section>
+      <Section title={r.nextTitle}>
+        <div className="rounded-xl border border-gold/50 px-6 py-5"><Paragraphs text={r.next} /></div>
+        <p className="mt-6 text-sm italic text-muted">{r.closing}</p>
       </Section>
     </>
   );

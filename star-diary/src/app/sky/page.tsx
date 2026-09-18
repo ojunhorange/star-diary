@@ -7,7 +7,7 @@ import NightSky, { type Line, type Point, type Star } from "@/components/NightSk
 import { byId, CORE_STARS, fittedStars } from "@/lib/constellations";
 import { loadDemo } from "@/lib/demo";
 import { requestScore } from "@/lib/score-client";
-import { coreEntries, findToday, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, placeStars, repairIfBroken, resetAll, subscribe } from "@/lib/store";
+import { coreEntries, findToday, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, getReadingServerSnapshot, getReadingSnapshot, isSunday, lineOpacity, placeStars, repairIfBroken, resetAll, RETRO_STEP, retroPool, subscribe } from "@/lib/store";
 
 const btn = "rounded-full border border-gold/60 px-8 py-3 text-lg text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
 const btnQuiet = "rounded-full px-6 py-3 text-lg text-muted transition hover:text-starlight";
@@ -15,6 +15,7 @@ const btnQuiet = "rounded-full px-6 py-3 text-lg text-muted transition hover:tex
 export default function Home() {
   const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const chosen = useSyncExternalStore(subscribe, getChosenSnapshot, getChosenServerSnapshot);
+  const reading = useSyncExternalStore(subscribe, getReadingSnapshot, getReadingServerSnapshot);
   const [open, setOpen] = useState<{ i: number; at: Point } | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -54,10 +55,15 @@ export default function Home() {
     ghosts = shape.filter((s) => !filled.has(s.join(","))).map(([x, y]) => ({ x, y }));
   }
 
+  const hasStory = (reading?.chapters.length ?? 0) > 0;
+  const pool = retroPool(entries, chosen, reading);
+  const retroLine = !hasStory
+    ? ""
+    : pool.length >= RETRO_STEP
+      ? isSunday() ? " · 하늘의 답이 열렸어요" : " · 별 세 개가 모였어요. 하늘의 답은 일요일에 열려요"
+      : ` · 다음 답까지 ${pool.length}/${RETRO_STEP}`;
   const status = constellation
-    ? ghosts.length === 0
-      ? `${constellation.name} · 이 달의 하늘이 꽉 찼어요`
-      : `${constellation.name} · 별 ${entries.length}개 · 남은 자리 ${ghosts.length}개`
+    ? `${constellation.name} · 별 ${entries.length}개${retroLine}`
     : pending
       ? "별 세 개가 모였어요. 기록이 가리키는 하늘을 골라보세요."
       : entries.length === 0
@@ -74,6 +80,7 @@ export default function Home() {
         stars={stars}
         ghosts={ghosts}
         lines={lines}
+        lineOpacity={lineOpacity(reading)}
         selected={open?.i ?? null}
         onStarClick={(i, at) => setOpen(open?.i === i ? null : { i, at })}
       />
@@ -93,7 +100,7 @@ export default function Home() {
             <Link href="/write" className={constellation ? btnQuiet : btn}>{cta}</Link>
           )}
           {constellation && (
-            <Link href="/reading" className={btn}>별자리 읽기</Link>
+            <Link href="/reading" className={btn}>{hasStory && pool.length >= RETRO_STEP && isSunday() ? "하늘의 답 읽기" : "별자리 읽기"}</Link>
           )}
         </div>
         {entries.length === 0 && (

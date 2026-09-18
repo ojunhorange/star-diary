@@ -1,5 +1,5 @@
 import { byId, CORE_STARS, fittedStars } from "@/lib/constellations";
-import type { Narrative } from "@/lib/narrative";
+import type { Narrative, Retro } from "@/lib/narrative";
 import type { Score } from "@/lib/scoring";
 
 export type Entry = {
@@ -43,8 +43,10 @@ export type Chosen = {
   chosenAt: string;
 };
 
-// 이야기는 장(章)으로 쌓임. 1장 = origin(고정), 이후 weekly가 뒤에 붙음 (추후)
-export type Chapter = { kind: "origin"; createdAt: string; narrative: Narrative };
+// 이야기는 장(章)으로 쌓임. 1장 = origin(고정), 이후 3편마다 retro가 뒤에 붙음
+export type Chapter =
+  | { kind: "origin"; createdAt: string; narrative: Narrative }
+  | { kind: "retro"; createdAt: string; entryIds: string[]; narrative: Retro };
 export type Reading = { chapters: Chapter[] };
 
 const OKEY = "star-diary:onboarded";
@@ -113,13 +115,14 @@ export function resetAll() {
   localStorage.removeItem(KEY);
   localStorage.removeItem(CKEY);
   localStorage.removeItem(RKEY);
+  localStorage.removeItem("star-diary:debug-sunday");
   window.dispatchEvent(new Event(CHANGE));
 }
 
 export function repairIfBroken(entries: Entry[], chosen: Chosen | null) {
   // 옛 구조의 이야기(place 섹션 없음)는 버리고 다시 생성
   const r = loadReading();
-  if (r && r.chapters.some((ch) => !ch.narrative || typeof ch.narrative.place !== "string")) {
+  if (r && r.chapters.some((ch) => !ch.narrative || (ch.kind === "origin" && typeof ch.narrative.place !== "string"))) {
     localStorage.removeItem(RKEY);
     window.dispatchEvent(new Event(CHANGE));
   }
@@ -213,4 +216,29 @@ export function subscribe(cb: () => void) {
     window.removeEventListener("storage", cb);
     window.removeEventListener(CHANGE, cb);
   };
+}
+
+// ---------- 회고(3편 단위) ----------
+export const RETRO_STEP = 3;
+
+// 별자리 확정 후, 아직 어떤 장에도 쓰이지 않은 채점된 일기 (일기 날짜순)
+export function retroPool(entries: Entry[], chosen: Chosen | null, reading: Reading | null): Entry[] {
+  if (!chosen) return [];
+  const used = new Set<string>(chosen.entryIds);
+  reading?.chapters.forEach((ch) => ch.kind === "retro" && ch.entryIds.forEach((id) => used.add(id)));
+  return entries.filter((e) => e.score && !used.has(e.id));
+}
+
+// 일요일부터 열림. 테스트용 스위치: localStorage star-diary:debug-sunday = 1
+export const isSunday = () => new Date().getDay() === 0 || localStorage.getItem("star-diary:debug-sunday") === "1";
+
+// 별자리 선 투명도: 확정 0.4 → 회고마다 +0.2 → 최대 1.0
+export const lineOpacity = (reading: Reading | null) =>
+  Math.min(1, 0.4 + 0.2 * (reading?.chapters.filter((c) => c.kind === "retro").length ?? 0));
+
+// 직전 장의 제안 문장
+export function lastAction(reading: Reading | null) {
+  const ch = reading?.chapters.at(-1);
+  if (!ch) return "";
+  return ch.kind === "origin" ? ch.narrative.action : ch.narrative.next;
 }
