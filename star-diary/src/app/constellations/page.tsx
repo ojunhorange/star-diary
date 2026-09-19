@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ConstellationPreview from "@/components/ConstellationPreview";
 import NightSky from "@/components/NightSky";
@@ -18,7 +17,6 @@ export default function Constellations() {
         <header className="max-w-2xl">
           <div className="flex items-center gap-4 text-sm">
             <button onClick={() => (history.length > 1 ? router.back() : router.push("/"))} className="text-muted hover:text-starlight text-[19px]">← 돌아가기</button>
-            <Link href="/" className="text-muted hover:text-starlight text-[19px] text-[19px]">처음으로</Link>
           </div>
           <h1 className="mt-4 font-serif text-3xl">별자리 도감</h1>
           <p className="mt-3 leading-relaxed text-muted">

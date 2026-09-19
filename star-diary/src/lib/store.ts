@@ -262,7 +262,7 @@ export function subscribe(cb: () => void) {
   };
 }
 
-// ---------- 하늘의 답 (3편 단위, 달 안에서) ----------
+// ---------- 하늘의 제안 (3편 단위, 달 안에서) ----------
 export const RETRO_STEP = 3; // 최소 편수
 export const RETRO_MAX = 7; // 한 답에 넣는 최대 편수
 

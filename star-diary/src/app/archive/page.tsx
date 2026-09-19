@@ -83,7 +83,7 @@ export default function Archive() {
                       <ConstellationPreview c={c} filled={Math.min(entries.length, c.stars.length)} className="my-2 h-20 w-full" />
                       <span className="font-serif">{c.name}</span>
                       <span className="text-sm text-gold">{c.persona}</span>
-                      {retros > 0 && <span className="mt-auto text-xs text-muted">하늘의 답 {retros}번</span>}
+                      {retros > 0 && <span className="mt-auto text-xs text-muted">하늘의 제안 {retros}번</span>}
                     </>
                   ) : (
                     <span className="m-auto h-3 w-3 rounded-full border border-starlight/25" />

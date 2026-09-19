@@ -150,7 +150,7 @@ export default function Reading() {
               ))}
               <li className="flex items-center gap-3 text-muted/60">
                 <span className="inline-block h-2 w-2 rounded-full border border-starlight/40" />
-                {pool.length >= RETRO_STEP ? (isSunday() ? (wantRetro ? "하늘의 답을 여는 중" : "하늘의 답이 열렸어요") : "하늘의 답 · 일요일에 열려요") : `다음 답까지 ${Math.min(pool.length, RETRO_STEP)}/${RETRO_STEP}`}
+                {pool.length >= RETRO_STEP ? (isSunday() ? (wantRetro ? "하늘의 제안을 쓰는 중" : "하늘의 제안이 도착했어요") : "하늘의 제안 · 일요일에 열려요") : `다음 제안까지 ${Math.min(pool.length, RETRO_STEP)}/${RETRO_STEP}`}
               </li>
             </ol>
             {chapters.length > 0 && retroReady && !wantRetro && (
@@ -160,7 +160,7 @@ export default function Reading() {
                 title={isSunday() ? undefined : "일요일에 열려요"}
                 className="mt-4 rounded-full border border-gold/60 px-6 py-2 text-gold transition enabled:hover:bg-gold/10 disabled:border-muted/30 disabled:text-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold text-[19px]"
               >
-                하늘의 답 열기
+                하늘의 제안 열기
               </button>
             )}
           </nav>
@@ -191,7 +191,7 @@ export default function Reading() {
 function chapterTitle(ch: Chapter, n: number) {
   const d = new Date(ch.createdAt);
   const when = `${d.getMonth() + 1}월 ${d.getDate()}일`;
-  return ch.kind === "origin" ? `별자리가 뜬 날 · ${when}` : `${["첫", "두", "세", "네", "다섯", "여섯"][n - 1] ?? n} 번째 답 · ${when}`;
+  return ch.kind === "origin" ? `별자리가 뜬 날 · ${when}` : `${["첫", "두", "세", "네", "다섯", "여섯"][n - 1] ?? n} 번째 제안 · ${when}`;
 }
 
 // 이 회고 장 직전 장의 제안 (되짚어 보여주기용)

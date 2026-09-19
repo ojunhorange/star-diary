@@ -67,8 +67,8 @@ export default function Home() {
   const retroLine = !hasStory
     ? ""
     : pool.length >= RETRO_STEP
-      ? isSunday() ? " · 하늘의 답이 열렸어요" : " · 별 세 개가 모였어요. 하늘의 답은 일요일에 열려요"
-      : ` · 다음 답까지 ${pool.length}/${RETRO_STEP}`;
+      ? isSunday() ? " · 하늘의 제안이 도착했어요" : " · 별 세 개가 모였어요. 하늘의 제안은 일요일에 열려요"
+      : ` · 다음 제안까지 ${pool.length}/${RETRO_STEP}`;
   const status = constellation
     ? `${constellation.name} · 별 ${entries.length}개${retroLine}`
     : pending
@@ -120,7 +120,7 @@ export default function Home() {
             <Link href="/write" className={constellation ? btnQuiet : btn}>{cta}</Link>
           )}
           {constellation && (
-            <Link href="/reading" className={btn}>{hasStory && pool.length >= RETRO_STEP && isSunday() ? "하늘의 답 열기" : "별자리 열기"}</Link>
+            <Link href="/reading" className={btn}>{hasStory && pool.length >= RETRO_STEP && isSunday() ? "하늘의 제안 열기" : "별자리 열기"}</Link>
           )}
         </div>
         {all.length === 0 && (
