@@ -7,7 +7,6 @@ export type Narrative = {
   pattern: string; // ① 세 편의 기록에서 반복된 것
   mythTitle: string; // 예: 뒤돌아본 음악가
   myth: string; // ② 신화 (이야기로만, 일기 인용 없음)
-  lesson: string; // 신화가 말하는 것 (한 줄)
   place: string; // ③ 이 이야기에서 당신이 서 있는 자리 (일기 인용은 여기서만)
   reframeTitle: string; // 예: 피론의 판단 유보
   reframe: string; // ④ 철학의 재해석
@@ -22,7 +21,6 @@ export const NARRATIVE_SCHEMA = {
     pattern: { type: "string" },
     mythTitle: { type: "string" },
     myth: { type: "string" },
-    lesson: { type: "string" },
     place: { type: "string" },
     reframeTitle: { type: "string" },
     reframe: { type: "string" },
@@ -30,7 +28,7 @@ export const NARRATIVE_SCHEMA = {
     action: { type: "string" },
     closing: { type: "string" },
   },
-  required: ["pattern", "mythTitle", "myth", "lesson", "place", "reframeTitle", "reframe", "actionTitle", "action", "closing"],
+  required: ["pattern", "mythTitle", "myth", "place", "reframeTitle", "reframe", "actionTitle", "action", "closing"],
   additionalProperties: false,
 } as const;
 
@@ -56,10 +54,9 @@ export const NARRATIVE_SYSTEM = `${SERVICE_CONTEXT}
 - pattern (250~400자): 반복된 표현과 감정을 보여주고, 그래서 이 별자리가 떴다고 끝맺습니다.
 - mythTitle (15자 이내): 신화의 핵심 장면을 담은 제목.
 - myth (400~550자): 신화를 이야기로만 씁니다 — 핵심 사건 3~4개와 그 인과만, 곁가지는 생략. 여기서는 일기를 인용하지 않습니다. 마지막 문장은 별자리가 하늘에 어떻게 남았는지로 끝냅니다.
-- lesson (40자 이내): 이 신화가 표면적으로 말하는 교훈을 당신이 한 줄로 뽑습니다. 접두어 없이 문장만. 뻔해도 괜찮습니다 — reframe에서 철학이 이 교훈의 한계를 짚고 넘어갑니다.
 - place (200~350자): 신화의 어느 장면에 이 사람이 서 있는지, 일기의 실제 문장을 “ ”로 인용하며 3~5문장. 규칙 6을 지킵니다.
 - reframeTitle (20자 이내): "철학자의 개념" 형식.
-- reframe (450~700자): 표면적 교훈이 왜 이 사람에게 부족한지 먼저 짚고(신화 속 근거로), 철학 개념이 다른 길을 냅니다. 개념 설명은 2문장 이내 + 비유 1개. 나머지는 이 사람의 실제 문장 하나에 그 개념을 적용하는 데 씁니다. "조언 전략"의 바꿀 것(A → B)이 여기서 드러납니다.
+- reframe (450~700자): 아래 "표면적 교훈"이 왜 이 사람에게 부족한지 먼저 짚고(신화 속 근거로), 철학 개념이 다른 길을 냅니다. 개념 설명은 2문장 이내 + 비유 1개. 나머지는 이 사람의 실제 문장 하나에 그 개념을 적용하는 데 씁니다. "조언 전략"의 바꿀 것(A → B)이 여기서 드러납니다.
 - actionTitle (25자 이내): "이번 주, 이렇게 해보는 건 어떨까요" 또는 상황에 맞게 변형.
 - action (250~400자): 언제·어디서·무엇을 명시한 행동 1개. "바꿀 것"의 방향을 이 사람의 일기 속 장면에서 출발하는 아주 작은 행동으로 설계합니다. 마지막 문장은 신화와 연결.
 - closing (40자 이내): "다음 일기에 이 실천이 등장하면 ~의 별이 더 밝아집니다." 형식, 별자리 이름 포함.`;
@@ -81,6 +78,9 @@ ${c.myth}
 
 이 참고자료는 뼈대입니다. 그대로 옮기지 말고 당신의 말로 새로 쓰되, 인과가 빠져 있거나 장면이 성긴 부분은 당신이 아는 이 신화의 지식으로 찾아 보완해도 됩니다. 단, 참고자료와 어긋나는 다른 판본을 섞지 않습니다.` : `
 이 별자리의 그리스 신화를 당신이 아는 대로 씁니다.`}
+
+# 표면적 교훈 (이 신화가 겉으로 말하는 것 — 이 문장을 기준으로 삼되 그대로 되풀이하지 말 것)
+${c.lesson}
 
 # 철학
 철학자: ${c.philosopher}

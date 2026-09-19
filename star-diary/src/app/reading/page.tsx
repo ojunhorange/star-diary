@@ -169,7 +169,7 @@ export default function Reading() {
         {/* 우측 본문 */}
         <article className="max-w-2xl font-serif text-lg leading-loose [overflow-wrap:anywhere] [word-break:normal]">
           {chapter ? (
-            chapter.kind === "origin" ? <Origin n={chapter.narrative} /> : <RetroView r={chapter.narrative} previous={previousActionOf(chapters, idx)} count={chapter.entryIds.length} />
+            chapter.kind === "origin" ? <Origin n={chapter.narrative} lesson={c.lesson} /> : <RetroView r={chapter.narrative} previous={previousActionOf(chapters, idx)} count={chapter.entryIds.length} />
           ) : !wantOrigin && !error ? (
             <div className="flex flex-col items-start gap-6">
               <p className="text-muted">세 편의 기록이 {c.name}를 가리켰어요. 하늘이 무엇을 읽었는지 들어볼까요.</p>
@@ -230,13 +230,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Origin({ n }: { n: Narrative }) {
+function Origin({ n, lesson }: { n: Narrative; lesson: string }) {
   return (
     <>
       <Section title="세 편의 기록에서 반복된 것"><Paragraphs text={n.pattern} /></Section>
       <Section title={n.mythTitle}>
         <Paragraphs text={n.myth} plain />
-        <p className="mt-6 text-muted">신화가 말하는 것 — {n.lesson.replace(/^신화가 말하는 것\s*[:—-]\s*/, "")}</p>
+        <p className="mt-6 text-muted">신화가 말하는 것 — {lesson}</p>
       </Section>
       <Section title="이 이야기에서 당신이 서 있는 자리"><Paragraphs text={n.place} /></Section>
       <Section title={n.reframeTitle}><Paragraphs text={n.reframe} /></Section>
