@@ -72,14 +72,14 @@ export default function Home() {
   const status = constellation
     ? `${constellation.name} · 별 ${entries.length}개${retroLine}`
     : pending
-      ? "별 세 개가 모였어요. 기록이 가리키는 하늘을 골라보세요."
+      ? "별 세 개가 모였어요. 기록이 가리키는 별자리를 골라보세요."
       : entries.length === 0
-        ? isThisMonth ? "아직 별이 없어요. 오늘 첫 별을 찍어보세요." : "이 달엔 별이 없어요."
+        ? isThisMonth ? "아직 별이 없어요. 오늘 첫 별을 밝혀보세요. 세 개가 모이면, 하늘이 당신의 별자리를 보여줘요." : "이 달엔 별이 없어요."
         : entries.length >= CORE_STARS
           ? "별을 읽는 중이에요. 잠시만요."
-          : `별 ${entries.length}개 · 별자리까지 ${CORE_STARS - entries.length}개 · 별을 누르면 그날의 기록이 열려요`;
+          : `별 ${entries.length}개 · ${CORE_STARS - entries.length === 1 ? "하나만 더 밝히면" : `${CORE_STARS - entries.length}개 더 밝히면`} 별자리가 떠요 · 별을 누르면 그날의 기록이 열려요`;
 
-  const cta = !isThisMonth ? "이 달에 별 밝히기" : today ? "새로운 별 밝히기" : "오늘 별 하나 찍기";
+  const cta = !isThisMonth ? "이 달에 별 밝히기" : today ? "새로운 별 밝히기" : "오늘 별 하나 밝히기";
   const failedEntries = entries.filter((e) => !e.score && errors.failed.has(e.id));
   const failure = failedEntries.length ? errors.failed.get(failedEntries[0].id) : undefined;
 

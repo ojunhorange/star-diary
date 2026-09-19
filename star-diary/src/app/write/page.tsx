@@ -65,7 +65,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
         {locked ? (
           <>
             <p className="min-h-72 whitespace-pre-wrap font-serif text-lg leading-loose [overflow-wrap:anywhere] [word-break:normal]">{existing!.text}</p>
-            <p className="text-sm text-muted">이 기록은 별자리의 일부가 되어 고정됐어요. 다른 날짜를 고르면 새 별을 찍을 수 있어요.</p>
+            <p className="text-sm text-muted">이 기록은 별자리의 일부가 되어 고정됐어요. 다른 날짜를 고르면 새 별을 밝힐 수 있어요.</p>
           </>
         ) : (
           <textarea
@@ -88,7 +88,7 @@ function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) =>
                 disabled={!ready}
                 className="rounded-full border border-gold/60 px-8 py-3 text-gold transition enabled:hover:bg-gold/10 disabled:border-muted/30 disabled:text-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold text-[19px] text-[19px]"
               >
-                {existing ? "다시 저장" : "별 찍기"}
+                {existing ? "다시 저장" : "별 밝히기"}
               </button>
             </div>
           )}

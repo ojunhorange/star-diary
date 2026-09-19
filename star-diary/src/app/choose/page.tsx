@@ -47,11 +47,11 @@ export default function Choose() {
 
       <section className="relative mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center gap-10 px-8 py-16">
         <header className={two ? "max-w-2xl" : "mx-auto max-w-2xl text-center"}>
-          <h1 className="font-serif text-2xl">{two ? "기록이 두 개의 하늘을 가리켰어요" : "기록이 한 하늘을 가리켰어요"}</h1>
+          <h1 className="font-serif text-2xl">{two ? "기록이 두 개의 별자리를 가리켰어요" : "기록이 한 별자리를 가리켰어요"}</h1>
           <p className="mt-3 leading-relaxed text-muted">
             세 편의 기록에서 <span className="text-starlight">{emotions.join(", ")}</span>이 읽혔고,
             {quotes.length > 0 && <> “{quotes.join("”, “")}” 같은 말이 남았어요.</>}
-            {two ? " 어느 쪽이 지금의 당신에 더 가까운가요? 정답은 없어요 — 고르는 쪽이 당신의 이야기가 됩니다." : " 이 하늘이 지금의 당신과 가장 가까워요."}
+            {two ? " 어느 쪽이 지금의 당신에 더 가까운가요? 정답은 없어요 — 고르는 쪽이 당신의 이야기가 됩니다." : " 이 별자리가 지금의 당신과 가장 가까워요."}
           </p>
         </header>
 
@@ -69,7 +69,7 @@ export default function Choose() {
                   <p className="mt-3 text-sm text-muted">당신의 기록에서: {cand.evidence.join(", ")} 나타났어요.</p>
                 )}
                 <button onClick={() => pick(c.id)} className={`${btn} mt-8 self-start`}>
-                  {two ? "이 하늘로 할게요" : "이 하늘로 갈게요"}
+                  {two ? "이 별자리로 할게요" : "이 별자리로 갈게요"}
                 </button>
               </article>
             );
