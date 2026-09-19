@@ -6,6 +6,7 @@ export default function CharCount({ text }: { text: string }) {
   return (
     <span className={`text-sm tabular-nums ${n >= MIN_LENGTH ? "text-muted" : "text-gold"}`}>
       {n}/{MIN_LENGTH}
+      {n < MIN_LENGTH && <span className="ml-2 text-muted">30자부터 별자리 생성에 사용돼요</span>}
     </span>
   );
 }

@@ -11,7 +11,9 @@ export type Entry = {
   score?: Score; // Gemini 채점 결과. 없으면 아직 못 읽은 상태(재시도 대상)
 };
 
-export const MIN_LENGTH = 30;
+export const MIN_LENGTH = 30; // 이 길이부터 채점·별자리에 셈
+export const MIN_SAVE = 5; // 저장 최소. 짧은 기록은 작은 별로만 남음
+export const counts = (e: Pick<Entry, "text">) => e.text.trim().length >= MIN_LENGTH;
 
 export const isLocked = (e: Entry) => !!e.constellationId;
 
@@ -213,9 +215,10 @@ export function placeStars(entries: Entry[], chosen: Chosen | null) {
   const c = chosen && byId(chosen.id);
   if (!c) return entries.map((e) => e.star);
   const core = chosen.entryIds;
-  const rest = entries.filter((e) => !core.includes(e.id)).map((e) => e.id);
+  const rest = entries.filter((e) => !core.includes(e.id) && counts(e)).map((e) => e.id);
   const stars = fittedStars(c);
   return entries.map((e) => {
+    if (!counts(e)) return e.star; // 짧은 별은 별자리에 안 붙고 제자리
     const i = core.includes(e.id) ? core.indexOf(e.id) : CORE_STARS + rest.indexOf(e.id);
     const pos = stars[i];
     if (pos) return { x: pos[0], y: pos[1] };

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import CharCount from "@/components/CharCount";
 import NightSky from "@/components/NightSky";
-import { addEntry, currentMonth, findByDay, getServerSnapshot, getSnapshot, getViewMonthServerSnapshot, getViewMonthSnapshot, isLocked, latestFreeDay, MIN_LENGTH, shiftDay, subscribe, today, updateEntry, type Entry } from "@/lib/store";
+import { addEntry, currentMonth, findByDay, getServerSnapshot, getSnapshot, getViewMonthServerSnapshot, getViewMonthSnapshot, isLocked, latestFreeDay, MIN_SAVE, shiftDay, subscribe, today, updateEntry, type Entry } from "@/lib/store";
 
 export default function Write() {
   const entries = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -28,7 +28,7 @@ const arrow = "rounded-full px-2 text-muted transition hover:text-starlight disa
 function Editor({ day, setDay, existing }: { day: string; setDay: (d: string) => void; existing?: Entry }) {
   const router = useRouter();
   const [text, setText] = useState(existing?.text ?? "");
-  const ready = text.trim().length >= MIN_LENGTH;
+  const ready = text.trim().length >= MIN_SAVE;
   const locked = existing ? isLocked(existing) : false;
 
   function save() {

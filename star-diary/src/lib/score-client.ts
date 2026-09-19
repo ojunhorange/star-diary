@@ -1,4 +1,4 @@
-import { setScore, type Entry } from "@/lib/store";
+import { counts, setScore, type Entry } from "@/lib/store";
 
 export type ScoreFailure = "limit" | "down";
 
@@ -9,7 +9,7 @@ const EVT = "star-diary:score-error";
 
 // 채점 요청. 실패해도 일기는 남고 점수만 비어 있음 → 실패 종류를 기억해 화면이 안내할 수 있게
 export async function requestScore(entry: Entry, force = false) {
-  if (entry.score || inFlight.has(entry.id)) return;
+  if (entry.score || !counts(entry) || inFlight.has(entry.id)) return;
   if (failed.has(entry.id) && !force) return; // 실패한 건 사용자가 다시 시도할 때만
   inFlight.add(entry.id);
   try {

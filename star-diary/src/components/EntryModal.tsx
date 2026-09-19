@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { failureMessage, getScoreErrorsServerSnapshot, getScoreErrorsSnapshot, retryScore, subscribeScoreErrors } from "@/lib/score-client";
 import CharCount from "@/components/CharCount";
-import { formatDate, isLocked, MIN_LENGTH, removeEntry, updateEntry, type Entry } from "@/lib/store";
+import { counts, formatDate, isLocked, MIN_SAVE, removeEntry, updateEntry, type Entry } from "@/lib/store";
 
 const btn =
   "rounded-full px-5 py-2 text-[17px] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
@@ -11,7 +11,7 @@ const btn =
 export default function EntryModal({ entry, onClose }: { entry: Entry; onClose: () => void }) {
   const [mode, setMode] = useState<"view" | "edit" | "delete">("view");
   const [draft, setDraft] = useState(entry.text);
-  const ready = draft.trim().length >= MIN_LENGTH;
+  const ready = draft.trim().length >= MIN_SAVE;
   const locked = isLocked(entry);
   const errors = useSyncExternalStore(subscribeScoreErrors, getScoreErrorsSnapshot, getScoreErrorsServerSnapshot);
   const failure = errors.failed.get(entry.id);
@@ -48,6 +48,8 @@ export default function EntryModal({ entry, onClose }: { entry: Entry; onClose: 
                   {em}
                 </span>
               ))
+            ) : !counts(entry) ? (
+              <span className="text-muted/70">짧은 기록이라 별자리 생성에는 쓰이지 않아요. 30자 이상으로 고치면 사용돼요.</span>
             ) : failure ? (
               <span className="text-muted/70">
                 {failureMessage(failure)}{" "}

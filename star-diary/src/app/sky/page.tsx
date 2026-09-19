@@ -7,7 +7,7 @@ import NightSky, { type Line, type Point, type Star } from "@/components/NightSk
 import { byId, CORE_STARS, fittedStars } from "@/lib/constellations";
 import { loadDemo } from "@/lib/demo";
 import { failureMessage, getScoreErrorsServerSnapshot, getScoreErrorsSnapshot, requestScore, retryScore, subscribeScoreErrors } from "@/lib/score-client";
-import { coreEntries, currentMonth, findToday, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, getReadingServerSnapshot, getReadingSnapshot, getViewMonthServerSnapshot, getViewMonthSnapshot, isSunday, lineOpacity, monthEntries, monthLabel, placeStars, repairIfBroken, resetAll, RETRO_STEP, retroPool, setViewMonth, shiftMonth, subscribe } from "@/lib/store";
+import { coreEntries, counts, currentMonth, findToday, getChosenServerSnapshot, getChosenSnapshot, getServerSnapshot, getSnapshot, getReadingServerSnapshot, getReadingSnapshot, getViewMonthServerSnapshot, getViewMonthSnapshot, isSunday, lineOpacity, monthEntries, monthLabel, placeStars, repairIfBroken, resetAll, RETRO_STEP, retroPool, setViewMonth, shiftMonth, subscribe } from "@/lib/store";
 
 const btn = "rounded-full border border-gold/60 px-8 py-3 text-[21px] text-gold transition hover:bg-gold/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold";
 const btnQuiet = "rounded-full px-6 py-3 text-[21px] text-muted transition hover:text-starlight";
@@ -43,6 +43,7 @@ export default function Home() {
   const today = findToday(entries);
   const constellation = chosen ? byId(chosen.id) : undefined;
   const pending = !chosen && coreEntries(entries).length >= CORE_STARS; // 3편 채점 완료, 아직 안 고름
+  const counted = entries.filter(counts); // 30자 이상만 별자리에 셈
 
   // 별 위치·연결선·빈 자리
   const positions = placeStars(entries, chosen);
@@ -50,7 +51,8 @@ export default function Home() {
   const stars: Star[] = positions.map((p, i) => {
     const d = new Date(entries[i].createdAt);
     const rank = !chosen ? 0 : chosen.entryIds.includes(entries[i].id) ? 0 : i < slots ? 1 : 2; // 0 핵심, 1 채움, 2 선 위
-    return { ...p, dim: !entries[i].score, label: `${d.getMonth() + 1}월 ${d.getDate()}일`, size: [1, 0.85, 0.6][rank] };
+    const c = counts(entries[i]);
+    return { ...p, dim: c && !entries[i].score, label: `${d.getMonth() + 1}월 ${d.getDate()}일`, size: c ? [1, 0.85, 0.6][rank] : 0.6 }; // 짧은 별: 읽는 중 아님, 선 위 별 크기
   });
   let lines: Line[] = [];
   let ghosts: Star[] = [];
@@ -75,9 +77,9 @@ export default function Home() {
       ? "별 세 개가 모였어요. 기록이 가리키는 별자리를 골라보세요."
       : entries.length === 0
         ? isThisMonth ? "아직 별이 없어요. 오늘 첫 별을 밝혀보세요. 세 개가 모이면, 하늘이 당신의 별자리를 보여줘요." : "이 달엔 별이 없어요."
-        : entries.length >= CORE_STARS
+        : counted.length >= CORE_STARS
           ? "별을 읽는 중이에요. 잠시만요."
-          : `별 ${entries.length}개 · ${CORE_STARS - entries.length === 1 ? "하나만 더 밝히면" : `${CORE_STARS - entries.length}개 더 밝히면`} 별자리가 떠요 · 별을 누르면 그날의 기록이 열려요`;
+          : `별 ${entries.length}개 · ${CORE_STARS - counted.length === 1 ? "하나만 더 밝히면" : `${CORE_STARS - counted.length}개 더 밝히면`} 별자리가 떠요 · 별을 누르면 그날의 기록이 열려요`;
 
   const cta = !isThisMonth ? "이 달에 별 밝히기" : today ? "새로운 별 밝히기" : "오늘 별 하나 밝히기";
   const failedEntries = entries.filter((e) => !e.score && errors.failed.has(e.id));
